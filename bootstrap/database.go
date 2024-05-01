@@ -9,7 +9,7 @@ import (
 	"github.com/amitshekhariitbhu/go-backend-clean-architecture/mongo"
 )
 
-func NewMongoDatabase(env *Env) mongo.Client {
+func NewMongoDatabase(env *Env) (mongo.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -26,20 +26,20 @@ func NewMongoDatabase(env *Env) mongo.Client {
 
 	client, err := mongo.NewClient(mongodbURI)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	err = client.Connect(ctx)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	err = client.Ping(ctx)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return client
+	return client, nil
 }
 
 func CloseMongoDBConnection(client mongo.Client) {

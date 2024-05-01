@@ -12,7 +12,6 @@ import (
 func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, gin *gin.Engine) {
 	publicRouter := gin.Group("")
 	// All Public APIs
-	NewSignupRouter(env, timeout, db, publicRouter)
 	NewLoginRouter(env, timeout, db, publicRouter)
 	NewRefreshTokenRouter(env, timeout, db, publicRouter)
 
@@ -21,5 +20,4 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, gin *gi
 	protectedRouter.Use(middleware.JwtAuthMiddleware(env.AccessTokenSecret))
 	// All Private APIs
 	NewProfileRouter(env, timeout, db, protectedRouter)
-	NewTaskRouter(env, timeout, db, protectedRouter)
 }

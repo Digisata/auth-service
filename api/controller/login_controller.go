@@ -11,11 +11,11 @@ import (
 )
 
 type LoginController struct {
-	LoginUsecase domain.LoginUsecase
+	LoginUsecase LoginUsecase
 	Env          *bootstrap.Env
 }
 
-func (lc *LoginController) Login(c *gin.Context) {
+func (lc LoginController) Login(c *gin.Context) {
 	var request domain.LoginRequest
 
 	err := c.ShouldBind(&request)
@@ -26,12 +26,12 @@ func (lc *LoginController) Login(c *gin.Context) {
 
 	user, err := lc.LoginUsecase.GetUserByEmail(c, request.Email)
 	if err != nil {
-		c.JSON(http.StatusNotFound, domain.ErrorResponse{Message: "User not found with the given email"})
+		c.JSON(http.StatusUnauthorized, domain.ErrorResponse{Message: "incorrect email or password"})
 		return
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password)) != nil {
-		c.JSON(http.StatusUnauthorized, domain.ErrorResponse{Message: "Invalid credentials"})
+		c.JSON(http.StatusUnauthorized, domain.ErrorResponse{Message: "incorrect email or password"})
 		return
 	}
 

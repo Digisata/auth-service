@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"time"
 
 	route "github.com/amitshekhariitbhu/go-backend-clean-architecture/api/route"
@@ -9,8 +10,10 @@ import (
 )
 
 func main() {
-
-	app := bootstrap.App()
+	app, err := bootstrap.App()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	env := app.Env
 

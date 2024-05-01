@@ -7,13 +7,25 @@ type Application struct {
 	Mongo mongo.Client
 }
 
-func App() Application {
-	app := &Application{}
-	app.Env = NewEnv()
-	app.Mongo = NewMongoDatabase(app.Env)
-	return *app
+func App() (*Application, error) {
+	env, err := NewEnv()
+	if err != nil {
+		return nil, err
+	}
+
+	mongo, err := NewMongoDatabase(env)
+	if err != nil {
+		return nil, err
+	}
+
+	app := &Application{
+		Env:   env,
+		Mongo: mongo,
+	}
+
+	return app, nil
 }
 
-func (app *Application) CloseDBConnection() {
+func (app Application) CloseDBConnection() {
 	CloseMongoDBConnection(app.Mongo)
 }

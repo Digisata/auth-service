@@ -9,11 +9,11 @@ import (
 )
 
 type RefreshTokenController struct {
-	RefreshTokenUsecase domain.RefreshTokenUsecase
+	RefreshTokenUsecase RefreshTokenUsecase
 	Env                 *bootstrap.Env
 }
 
-func (rtc *RefreshTokenController) RefreshToken(c *gin.Context) {
+func (rtc RefreshTokenController) RefreshToken(c *gin.Context) {
 	var request domain.RefreshTokenRequest
 
 	err := c.ShouldBind(&request)
@@ -24,7 +24,7 @@ func (rtc *RefreshTokenController) RefreshToken(c *gin.Context) {
 
 	id, err := rtc.RefreshTokenUsecase.ExtractIDFromToken(request.RefreshToken, rtc.Env.RefreshTokenSecret)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, domain.ErrorResponse{Message: "User not found"})
+		c.JSON(http.StatusUnauthorized, domain.ErrorResponse{Message: err.Error()})
 		return
 	}
 

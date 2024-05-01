@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/spf13/viper"
@@ -21,23 +22,23 @@ type Env struct {
 	RefreshTokenSecret     string `mapstructure:"REFRESH_TOKEN_SECRET"`
 }
 
-func NewEnv() *Env {
+func NewEnv() (*Env, error) {
 	env := Env{}
 	viper.SetConfigFile(".env")
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatal("Can't find the file .env : ", err)
+		return nil, fmt.Errorf("can't find the file .env : %v", err)
 	}
 
 	err = viper.Unmarshal(&env)
 	if err != nil {
-		log.Fatal("Environment can't be loaded: ", err)
+		return nil, fmt.Errorf("environment can't be loaded: %v", err)
 	}
 
 	if env.AppEnv == "development" {
 		log.Println("The App is running in development env")
 	}
 
-	return &env
+	return &env, nil
 }
