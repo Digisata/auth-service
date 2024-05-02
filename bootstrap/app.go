@@ -1,25 +1,25 @@
 package bootstrap
 
-import "github.com/amitshekhariitbhu/go-backend-clean-architecture/mongo"
+import "github.com/digisata/auth-service/pkg/mongo"
 
 type Application struct {
-	Env   *Env
+	Cfg   *Config
 	Mongo mongo.Client
 }
 
 func App() (*Application, error) {
-	env, err := NewEnv()
+	cfg, err := LoadConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	mongo, err := NewMongoDatabase(env)
+	mongo, err := NewMongoDatabase(cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	app := &Application{
-		Env:   env,
+		Cfg:   cfg,
 		Mongo: mongo,
 	}
 

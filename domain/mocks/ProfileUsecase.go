@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	domain "github.com/amitshekhariitbhu/go-backend-clean-architecture/domain"
+	domain "github.com/digisata/auth-service/domain"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -15,15 +15,15 @@ type ProfileUsecase struct {
 }
 
 // GetProfileByID provides a mock function with given fields: c, userID
-func (_m *ProfileUsecase) GetProfileByID(c context.Context, userID string) (*domain.Profile, error) {
+func (_m *ProfileUsecase) GetProfileByID(c context.Context, userID string) (*domain.UserProfile, error) {
 	ret := _m.Called(c, userID)
 
-	var r0 *domain.Profile
-	if rf, ok := ret.Get(0).(func(context.Context, string) *domain.Profile); ok {
+	var r0 *domain.UserProfile
+	if rf, ok := ret.Get(0).(func(context.Context, string) *domain.UserProfile); ok {
 		r0 = rf(c, userID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.Profile)
+			r0 = ret.Get(0).(*domain.UserProfile)
 		}
 	}
 

@@ -1,6 +1,21 @@
-.PHONY: run docker-build docker-run docker-build-run check-if-present-env check-if-valid-env
+.PHONY: run docker-build docker-run docker-build-run check-if-present-env check-if-valid-env clean-proto proto-gen
 
 CHECK_ENV := production|staging|local
+
+proto-gen:	clean-proto
+	@echo "Generating the stubs"
+	./scripts/proto-gen.sh
+	@echo "Success generate stubs. All stubs created are in the 'stubs/' directory"
+	@echo "Generating the Swagger UI"
+	./scripts/swagger-ui-gen.sh
+	@echo "Success generate Swagger UI. If you want to change Swagger UI to previous version copy the previous version from './cache/swagger-ui' directory"
+	@echo "You can try swagger-ui with command 'make debug'"
+	@echo "DO NOT EDIT ANY FILES STUBS!"
+
+clean-proto:
+	@echo "Delete all previous stubs ..."
+	rm -rf stubs/*
+	@echo "All stubs successfully deleted"
 
 docker-build: check-if-present-env check-if-valid-env
 	@docker build . --file Dockerfile --build-arg ENVIRONMENT=${ENV} --no-cache --tag auth-service

@@ -6,17 +6,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/amitshekhariitbhu/go-backend-clean-architecture/mongo"
+	"github.com/digisata/auth-service/pkg/mongo"
 )
 
-func NewMongoDatabase(env *Env) (mongo.Client, error) {
+func NewMongoDatabase(cfg *Config) (mongo.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	dbHost := env.DBHost
-	dbPort := env.DBPort
-	dbUser := env.DBUser
-	dbPass := env.DBPass
+	dbHost := cfg.DBHost
+	dbPort := cfg.DBPort
+	dbUser := cfg.DBUser
+	dbPass := cfg.DBPass
 
 	mongodbURI := fmt.Sprintf("mongodb://%s:%s@%s:%s", dbUser, dbPass, dbHost, dbPort)
 

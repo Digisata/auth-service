@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"github.com/amitshekhariitbhu/go-backend-clean-architecture/domain"
+	"github.com/digisata/auth-service/domain"
 )
 
 type (

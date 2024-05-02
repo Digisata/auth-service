@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package auth_service.user;
+
+option go_package = "github.com/digisata/auth-service/proto/user;userPb";
+
+message BaseResponse {
+    string message = 1 [json_name = "message"];
+}
+
+message CreateUserRequest {
+    string name = 1 [json_name = "name"];
+    string role = 2 [json_name = "role"];
+    string email = 3 [json_name = "email"];
+    string password = 4 [json_name = "password"];
+}
+
+message LoginRequest {
+    string email = 1 [json_name = "email"];
+    string password = 2 [json_name = "password"];
+}
+
+message LoginResponse {
+    string access_token = 1 [json_name = "access_token"];
+    string refresh_token = 2 [json_name = "refresh_token"];
+}
+
+message RefreshTokenRequest {
+    string refresh_token = 1 [json_name = "refresh_token"];
+}
+
+message RefreshTokenResponse {
+    string access_token = 1 [json_name = "access_token"];
+    string refresh_token = 2 [json_name = "refresh_token"];
+}
+
+message GetUserByIDResponse {
+    string name = 1 [json_name = "name"];
+    string email = 2 [json_name = "email"];
+}

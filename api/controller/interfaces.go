@@ -3,7 +3,7 @@ package controller
 import (
 	"context"
 
-	"github.com/amitshekhariitbhu/go-backend-clean-architecture/domain"
+	"github.com/digisata/auth-service/domain"
 )
 
 type (
@@ -20,8 +20,8 @@ type (
 		ExtractIDFromToken(requestToken string, secret string) (string, error)
 	}
 
-	ProfileUsecase interface {
-		CreateProfile(c context.Context, user *domain.User) error
-		GetProfileByID(c context.Context, userID string) (*domain.Profile, error)
+	UserUsecase interface {
+		CreateUser(c context.Context, user *domain.User) error
+		GetUserByID(c context.Context, userID string) (*domain.UserProfile, error)
 	}
 )
