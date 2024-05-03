@@ -5,16 +5,18 @@ import (
 	"time"
 
 	"github.com/digisata/auth-service/domain"
-	"github.com/digisata/auth-service/internal/tokenutil"
+	"github.com/digisata/auth-service/pkg/jwtio"
 )
 
 type LoginUsecase struct {
+	jwt            *jwtio.JSONWebToken
 	userRepository UserRepository
 	contextTimeout time.Duration
 }
 
-func NewLoginUsecase(userRepository UserRepository, timeout time.Duration) *LoginUsecase {
+func NewLoginUsecase(jwt *jwtio.JSONWebToken, userRepository UserRepository, timeout time.Duration) *LoginUsecase {
 	return &LoginUsecase{
+		jwt:            jwt,
 		userRepository: userRepository,
 		contextTimeout: timeout,
 	}
@@ -27,9 +29,9 @@ func (lu LoginUsecase) GetUserByEmail(c context.Context, email string) (domain.U
 }
 
 func (lu LoginUsecase) CreateAccessToken(user *domain.User, secret string, expiry int) (accessToken string, err error) {
-	return tokenutil.CreateAccessToken(user, secret, expiry)
+	return lu.jwt.CreateAccessToken(user, secret, expiry)
 }
 
 func (lu LoginUsecase) CreateRefreshToken(user *domain.User, secret string, expiry int) (refreshToken string, err error) {
-	return tokenutil.CreateRefreshToken(user, secret, expiry)
+	return lu.jwt.CreateRefreshToken(user, secret, expiry)
 }

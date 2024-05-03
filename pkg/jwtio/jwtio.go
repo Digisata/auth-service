@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/digisata/auth-service/bootstrap"
+	"github.com/digisata/auth-service/domain"
 	"github.com/golang-jwt/jwt/v4"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -19,8 +20,6 @@ const (
 	UNEXPECTED_SIGNING_METHOD = "unexpected signing method: %v"
 )
 
-var claims jwt.MapClaims
-
 type JSONWebToken struct {
 	cfg *bootstrap.Config
 }
@@ -31,46 +30,65 @@ func NewJSONWebToken(cfg *bootstrap.Config) *JSONWebToken {
 	}
 }
 
-func (j *JSONWebToken) Generate(ctx context.Context, payload interface{}, privateKey string) (string, error) {
-	token := jwt.New(jwt.SigningMethodHS256)
+func (j JSONWebToken) CreateAccessToken(user *domain.User, secret string, expiry int) (accessToken string, err error) {
+	exp := time.Now().Add(time.Hour * time.Duration(expiry)).Unix()
+	claims := &domain.JwtCustomClaims{
+		Name: user.Name,
+		ID:   user.ID.Hex(),
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: exp,
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	now := time.Now().UTC()
-	claims := token.Claims.(jwt.MapClaims)
-	claims["dat"] = payload    // Our custom data.
-	claims["iat"] = now.Unix() // The time at which the token was issued.
-
-	tokenString, err := token.SignedString([]byte(privateKey))
+	t, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", err
 	}
 
-	return tokenString, nil
+	return t, nil
 }
 
-func (j *JSONWebToken) Validate(ctx context.Context) (jwt.MapClaims, error) {
+func (j JSONWebToken) CreateRefreshToken(user *domain.User, secret string, expiry int) (refreshToken string, err error) {
+	exp := time.Now().Add(time.Hour * time.Duration(expiry)).Unix()
+	claimsRefresh := &domain.JwtCustomRefreshClaims{
+		ID: user.ID.Hex(),
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: exp,
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claimsRefresh)
+
+	rt, err := token.SignedString([]byte(secret))
+	if err != nil {
+		return "", err
+	}
+
+	return rt, nil
+}
+
+func (j JSONWebToken) Validate(ctx context.Context) (jwt.MapClaims, error) {
 	accessToken, err := getAccessToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
-		return j.validateLoginToken(ctx, token, &claims)
+		return j.validateLoginToken(token)
 	})
-	if !token.Valid {
-		return nil, fmt.Errorf("invalid token")
+	if err != nil {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok && !token.Valid {
+		return nil, fmt.Errorf(FAILED_TO_EXTRACT)
 	}
 
 	return claims, nil
 }
 
-func (j *JSONWebToken) validateLoginToken(ctx context.Context, token *jwt.Token, claim *jwt.MapClaims) (interface{}, error) {
-	c, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, fmt.Errorf(FAILED_TO_EXTRACT)
-	}
-
-	*claim = c
-
+func (j JSONWebToken) validateLoginToken(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 		return nil, fmt.Errorf(UNEXPECTED_SIGNING_METHOD, token.Header["alg"])
 	}
@@ -101,32 +119,21 @@ func getAccessToken(ctx context.Context) (string, error) {
 	return split[1], nil
 }
 
-func (j *JSONWebToken) GetJWTClaim(ctx context.Context) (jwt.MapClaims, error) {
-	md, _ := metadata.FromIncomingContext(ctx)
-	values := md["authorization"]
-	split := strings.Split(values[0], " ")
-	accessToken := split[1]
-
-	claims := jwt.MapClaims{}
-
-	_, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
-		c, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			return nil, fmt.Errorf(FAILED_TO_EXTRACT)
-		}
-
-		claims = c
-
+func (j *JSONWebToken) ExtractIDFromToken(requestToken string, secret string) (string, error) {
+	token, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf(UNEXPECTED_SIGNING_METHOD, token.Header["alg"])
 		}
-
-		return []byte(j.cfg.AccessTokenSecret), nil
+		return []byte(secret), nil
 	})
-
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return claims, nil
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok && !token.Valid {
+		return "", fmt.Errorf(FAILED_TO_EXTRACT)
+	}
+
+	return claims["id"].(string), nil
 }

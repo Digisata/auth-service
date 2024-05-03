@@ -55,8 +55,8 @@ func main() {
 	ur := repository.NewUserRepository(db, domain.CollectionUser)
 	timeout := time.Duration(cfg.ContextTimeout) * time.Second
 	uc := &controller.UserController{
-		LoginUsecase:        usecase.NewLoginUsecase(ur, timeout),
-		RefreshTokenUsecase: usecase.NewRefreshTokenUsecase(ur, timeout),
+		LoginUsecase:        usecase.NewLoginUsecase(jwt, ur, timeout),
+		RefreshTokenUsecase: usecase.NewRefreshTokenUsecase(jwt, ur, timeout),
 		UserUsecase:         usecase.NewUserUsecase(ur, timeout),
 	}
 
