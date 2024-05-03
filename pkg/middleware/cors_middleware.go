@@ -23,21 +23,21 @@ var (
 	corsAllowedOrigins = []string{"*"}
 )
 
-func allowedOrigin(origin string, cfg *bootstrap.Config) bool {
+func allowedOrigin(origin string) bool {
 	if stringInSlice(viper.GetString("cors"), corsAllowedHeaders) {
 		return true
 	}
-	if matched, _ := regexp.MatchString(viper.GetString("cors"), origin); matched {
-		return true
-	}
-	return false
+
+	matched, _ := regexp.MatchString(viper.GetString("cors"), origin)
+
+	return matched
 }
 
 func CORS(h http.Handler, cfg *bootstrap.Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Strict-Transport-Security", "max-age=31536000")
 
-		if allowedOrigin(r.Header.Get("Origin"), cfg) {
+		if allowedOrigin(r.Header.Get("Origin")) {
 			if utils.GetEnv("APP_ENV", "dev") != "prod" {
 				w.Header().Set("Content-Security-Policy", "object-src 'none'; child-src 'none'; script-src 'unsafe-inline' https: http: ")
 				w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -55,6 +55,7 @@ func CORS(h http.Handler, cfg *bootstrap.Config) http.Handler {
 		if r.Method == "OPTIONS" {
 			return
 		}
+
 		h.ServeHTTP(w, r)
 	})
 }
@@ -65,5 +66,6 @@ func stringInSlice(a string, list []string) bool {
 			return true
 		}
 	}
+
 	return false
 }

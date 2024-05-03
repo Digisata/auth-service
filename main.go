@@ -18,6 +18,7 @@ import (
 	"github.com/digisata/auth-service/repository"
 	userPb "github.com/digisata/auth-service/stubs/user"
 	"github.com/digisata/auth-service/usecase"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -39,9 +40,14 @@ func main() {
 
 	jwt := jwtio.NewJSONWebToken(cfg)
 
-	im := interceptors.NewInterceptorManager(jwt)
+	logger, _ := zap.NewProduction()
+	defer logger.Sync() // flushes buffer, if any
 
-	grpcServer, err := grpcserver.NewGrpcServer(cfg, im)
+	sugar := logger.Sugar()
+
+	im := interceptors.NewInterceptorManager(jwt, sugar)
+
+	grpcServer, err := grpcserver.NewGrpcServer(cfg, im, sugar)
 	if err != nil {
 		panic(err)
 	}

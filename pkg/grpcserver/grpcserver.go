@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/digisata/auth-service/bootstrap"
+	"github.com/digisata/auth-service/pkg/constants"
 	"github.com/digisata/auth-service/pkg/interceptors"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
@@ -22,19 +24,20 @@ import (
 
 type GrpcServer struct {
 	*grpc.Server
+	logger   *zap.SugaredLogger
 	Listener net.Listener
 	Port     string
 	Network  string
 }
 
 const (
-	maxConnectionIdle = 300
-	gRPCTimeout       = 15
-	maxConnectionAge  = 300
-	gRPCTime          = 600
+	maxConnectionIdle time.Duration = 300
+	gRPCTimeout       time.Duration = 15
+	maxConnectionAge  time.Duration = 300
+	gRPCTime          time.Duration = 600
 )
 
-func NewGrpcServer(cfg *bootstrap.Config, im interceptors.InterceptorManager, opts ...grpc.ServerOption) (*GrpcServer, error) {
+func NewGrpcServer(cfg *bootstrap.Config, im interceptors.InterceptorManager, logger *zap.SugaredLogger, opts ...grpc.ServerOption) (*GrpcServer, error) {
 	if cfg.GrpcTls {
 		certFile := "ssl/certificates/server.crt" // => your certFile file path
 		keyFile := "ssl/server.pem"               // => your keyFile file patn
@@ -68,6 +71,7 @@ func NewGrpcServer(cfg *bootstrap.Config, im interceptors.InterceptorManager, op
 	grpcPrometheus.Register(server)
 
 	return &GrpcServer{
+		logger:  logger,
 		Server:  server,
 		Network: cfg.GrpcNetwork,
 		Port:    cfg.GrpcPort,
@@ -79,20 +83,25 @@ func (grpcServer *GrpcServer) Run() error {
 	if err != nil {
 		return errors.Wrap(err, "net.Listen")
 	}
+
 	grpcServer.Listener = listener
 
 	go func() {
 		if err := grpcServer.Server.Serve(grpcServer.Listener); err != nil {
-			fmt.Println(err)
+			grpcServer.logger.Fatalw(constants.FATAL,
+				"error", err.Error(),
+			)
 		}
 	}()
 
 	return nil
 }
 
-func (grpcServer *GrpcServer) Stop(ctx context.Context) {
+func (grpcServer GrpcServer) Stop(ctx context.Context) {
 	if err := grpcServer.Listener.Close(); err != nil {
-		panic(err)
+		grpcServer.logger.Fatalw(constants.FATAL,
+			"error", err.Error(),
+		)
 	}
 
 	go func() {

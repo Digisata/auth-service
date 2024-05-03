@@ -1,4 +1,8 @@
-.PHONY: run docker-build docker-run docker-build-run check-if-present-env check-if-valid-env clean-proto proto-gen
+SERVICE_NAME=auth-service
+ENGINE=main.go
+BUILD_DIR=build
+
+.PHONY: build run docker-build docker-run docker-build-run check-if-present-env check-if-valid-env clean-proto proto-gen ssl-gen
 
 CHECK_ENV := production|staging|local
 
@@ -17,6 +21,12 @@ clean-proto:
 	rm -rf stubs/*
 	@echo "All stubs successfully deleted"
 
+ssl-gen:
+	@echo "Generating ssl configuration"
+	./scripts/ssl-gen.sh
+	@echo "Success generate ssl configuration. All SSL Configuration created in the 'ssl/' directory"
+	@echo "DO NOT EXPOSE SSL DIRECTORY!"
+
 docker-build: check-if-present-env check-if-valid-env
 	@docker build . --file Dockerfile --build-arg ENVIRONMENT=${ENV} --no-cache --tag auth-service
 
@@ -26,9 +36,13 @@ docker-run:
 
 docker-build-run: docker-build docker-run
 
-local:
-	@cp .env.local .env
-	@go build .
+build:
+	@echo "Building app"
+	go build -o ${BUILD_DIR}/${SERVICE_NAME} ${ENGINE}
+	@echo "Success build app. Your app is ready to use in 'build/' directory."
+
+run:
+	@go fmt ./...
 	@go run .
 
 # Environment test/check

@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	backoffLinear  = 100 * time.Millisecond
-	backoffRetries = 3
+	backoffLinear  time.Duration = 100 * time.Millisecond
+	backoffRetries uint          = 3
 )
 
 func NewGrpcClient(ctx context.Context, cfg *bootstrap.Config, im interceptors.InterceptorManager, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
@@ -50,5 +50,6 @@ func NewGrpcClient(ctx context.Context, cfg *bootstrap.Config, im interceptors.I
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.DialContext")
 	}
+
 	return conn, nil
 }

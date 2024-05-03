@@ -6,6 +6,7 @@ import (
 	"github.com/digisata/auth-service/pkg/constants"
 	"github.com/digisata/auth-service/pkg/jwtio"
 	"github.com/digisata/auth-service/pkg/tracing"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -35,17 +36,22 @@ type InterceptorManager interface {
 
 // InterceptorManager struct
 type interceptorManager struct {
+	logger            *zap.SugaredLogger
 	jwtManager        *jwtio.JSONWebToken
 	restrictedMethods map[string][]string
 }
 
 // NewInterceptorManager InterceptorManager constructor
-func NewInterceptorManager(jwtManager *jwtio.JSONWebToken) *interceptorManager {
-	return &interceptorManager{jwtManager: jwtManager, restrictedMethods: restrictedMethods()}
+func NewInterceptorManager(jwtManager *jwtio.JSONWebToken, logger *zap.SugaredLogger) *interceptorManager {
+	return &interceptorManager{
+		logger:            logger,
+		jwtManager:        jwtManager,
+		restrictedMethods: restrictedMethods(),
+	}
 }
 
 // Logger Interceptor
-func (im *interceptorManager) Logger(
+func (im interceptorManager) Logger(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
@@ -53,14 +59,26 @@ func (im *interceptorManager) Logger(
 ) (resp interface{}, err error) {
 	reply, err := handler(ctx, req)
 	if err != nil {
+		im.logger.Errorw(constants.ERROR,
+			"method", info.FullMethod,
+			"request", req,
+			"error", err.Error(),
+		)
+
 		return reply, err
 	}
+
+	im.logger.Infow(constants.INFO,
+		"method", info.FullMethod,
+		"request", req,
+		"error", nil,
+	)
 
 	return reply, err
 }
 
 // ClientRequestLoggerInterceptor gRPC client interceptor
-func (im *interceptorManager) ClientRequestLoggerInterceptor() func(
+func (im interceptorManager) ClientRequestLoggerInterceptor() func(
 	ctx context.Context,
 	method string,
 	req interface{},
@@ -79,68 +97,17 @@ func (im *interceptorManager) ClientRequestLoggerInterceptor() func(
 		opts ...grpc.CallOption,
 	) error {
 		err := invoker(ctx, method, req, reply, cc, opts...)
+		im.logger.Infow(constants.INFO,
+			"method", method,
+			"request", req,
+			"error", nil,
+		)
+
 		return err
 	}
 }
 
-func restrictedMethods() map[string][]string {
-	const path string = "/auth_service.user.AuthService/"
-
-	return map[string][]string{
-		path + "Verify": {constants.RefreshToken},
-
-		path + "CreateCNSToken":            {constants.AccessToken},
-		path + "GetAllCNSToken":            {constants.AccessToken},
-		path + "GetAllCNSTokenByAccountId": {constants.AccessToken},
-		path + "GetCNSToken":               {constants.AccessToken},
-		path + "DeleteCNSToken":            {constants.AccessToken},
-
-		path + "GetNotifToken":    {constants.AccessToken},
-		path + "ResetNotifToken":  {constants.AccessToken},
-		path + "GetAllCNSAccount": {constants.AccessToken},
-		path + "GetCNSAccount":    {constants.AccessToken},
-		path + "UpdateCNSAccount": {constants.AccessToken},
-		path + "DeleteCNSAccount": {constants.AccessToken},
-
-		path + "CreateCNSChannelGroup": {constants.AccessToken},
-		path + "GetAllCNSChannelGroup": {constants.AccessToken},
-		path + "GetCNSChannelGroup":    {constants.AccessToken},
-		path + "UpdateCNSChannelGroup": {constants.AccessToken},
-		path + "DeleteCNSChannelGroup": {constants.AccessToken},
-
-		path + "CreateCNSChannelAccountGroup": {constants.AccessToken},
-		path + "GetAllCNSChannelAccountGroup": {constants.AccessToken},
-		path + "GetCNSChannelAccountGroup":    {constants.AccessToken},
-		path + "DeleteCNSChannelAccountGroup": {constants.AccessToken},
-
-		path + "CreateCNSNotificationCategory":            {constants.AccessToken},
-		path + "GetAllCNSNotificationCategory":            {constants.AccessToken},
-		path + "GetAllCNSNotificationCategoryByAccountId": {constants.AccessToken},
-		path + "GetCNSNotificationCategory":               {constants.AccessToken, constants.RefreshToken},
-		path + "DeleteCNSNotificationCategory":            {constants.AccessToken},
-
-		path + "CreateCNSNotificationCategoryDetail": {constants.AccessToken},
-		path + "GetAllCNSNotificationCategoryDetail": {constants.AccessToken},
-		path + "GetCNSNotificationCategoryDetail":    {constants.AccessToken},
-		path + "UpdateCNSNotificationCategoryDetail": {constants.AccessToken},
-		path + "DeleteCNSNotificationCategoryDetail": {constants.AccessToken},
-
-		path + "CreateCNSNotificationType":                         {constants.AccessToken},
-		path + "GetAllCNSNotificationType":                         {constants.AccessToken},
-		path + "GetAllCNSNotificationTypeByNotificationCategoryId": {constants.AccessToken},
-		path + "GetCNSNotificationType":                            {constants.AccessToken, constants.RefreshToken},
-		path + "DeleteCNSNotificationType":                         {constants.AccessToken},
-		path + "GetAllCNSNotificationTypeByCategoryID":             {constants.AccessToken},
-
-		path + "CreateCNSNotificationTypeDetail": {constants.AccessToken},
-		path + "GetAllCNSNotificationTypeDetail": {constants.AccessToken},
-		path + "GetCNSNotificationTypeDetail":    {constants.AccessToken},
-		path + "UpdateCNSNotificationTypeDetail": {constants.AccessToken},
-		path + "DeleteCNSNotificationTypeDetail": {constants.AccessToken},
-	}
-}
-
-func (im *interceptorManager) AuthInterceptor(
+func (im interceptorManager) AuthInterceptor(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
@@ -163,10 +130,22 @@ func (im *interceptorManager) AuthInterceptor(
 	return handler(newCtx, req)
 }
 
-func (im *interceptorManager) isRestricted(ctx context.Context, method string) ([]string, bool) {
+func (im interceptorManager) isRestricted(ctx context.Context, method string) ([]string, bool) {
 	_, span := tracing.StartGrpcServerTracerSpan(ctx, "Interceptors.isRestricted")
 	defer span.End()
 
-	value, restricted := im.restrictedMethods[method]
-	return value, restricted
+	value, ok := im.restrictedMethods[method]
+
+	return value, ok
+}
+
+func restrictedMethods() map[string][]string {
+	const path string = "/auth_service.user.AuthService/"
+
+	return map[string][]string{
+		path + "Verify": {constants.RefreshToken},
+
+		path + "CreateUser":  {constants.AccessToken},
+		path + "GetUserByID": {constants.AccessToken},
+	}
 }
