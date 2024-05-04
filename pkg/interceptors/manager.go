@@ -120,7 +120,7 @@ func (im interceptorManager) AuthInterceptor(
 		return handler(ctx, req)
 	}
 
-	claims, err := im.jwtManager.Validate(ctx)
+	claims, err := im.jwtManager.Verify(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -143,9 +143,7 @@ func restrictedMethods() map[string][]string {
 	const path string = "/auth_service.user.AuthService/"
 
 	return map[string][]string{
-		path + "Verify": {constants.RefreshToken},
-
-		path + "CreateUser":  {constants.AccessToken},
-		path + "GetUserByID": {constants.AccessToken},
+		path + "CreateUser":  {constants.ACCESS_TOKEN},
+		path + "GetUserByID": {constants.ACCESS_TOKEN},
 	}
 }

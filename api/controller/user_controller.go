@@ -6,19 +6,18 @@ import (
 	"github.com/digisata/auth-service/bootstrap"
 	"github.com/digisata/auth-service/domain"
 	userPb "github.com/digisata/auth-service/stubs/user"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/golang/protobuf/ptypes/empty"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type UserController struct {
 	userPb.UnimplementedAuthServiceServer
+	Config              *bootstrap.Config
 	LoginUsecase        LoginUsecase
 	RefreshTokenUsecase RefreshTokenUsecase
 	UserUsecase         UserUsecase
-	Env                 *bootstrap.Config
 }
 
 func (uc UserController) CreateUser(ctx context.Context, req *userPb.CreateUserRequest) (*userPb.BaseResponse, error) {
@@ -47,16 +46,17 @@ func (uc UserController) Login(ctx context.Context, req *userPb.LoginRequest) (*
 		return nil, err
 	}
 
-	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.GetPassword())) != nil {
-		return nil, err
-	}
-
-	accessToken, err := uc.LoginUsecase.CreateAccessToken(&user, uc.Env.AccessTokenSecret, uc.Env.AccessTokenExpiryHour)
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.GetPassword()))
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := uc.LoginUsecase.CreateRefreshToken(&user, uc.Env.RefreshTokenSecret, uc.Env.RefreshTokenExpiryHour)
+	accessToken, err := uc.LoginUsecase.CreateAccessToken(&user, uc.Config.AccessTokenSecret, uc.Config.AccessTokenExpiryHour)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, err := uc.LoginUsecase.CreateRefreshToken(&user, uc.Config.RefreshTokenSecret, uc.Config.RefreshTokenExpiryHour)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (uc UserController) Login(ctx context.Context, req *userPb.LoginRequest) (*
 }
 
 func (uc UserController) RefreshToken(ctx context.Context, req *userPb.RefreshTokenRequest) (*userPb.RefreshTokenResponse, error) {
-	id, err := uc.RefreshTokenUsecase.ExtractIDFromToken(req.GetRefreshToken(), uc.Env.RefreshTokenSecret)
+	id, err := uc.RefreshTokenUsecase.ExtractIDFromToken(req.GetRefreshToken(), uc.Config.RefreshTokenSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -80,12 +80,12 @@ func (uc UserController) RefreshToken(ctx context.Context, req *userPb.RefreshTo
 		return nil, err
 	}
 
-	accessToken, err := uc.RefreshTokenUsecase.CreateAccessToken(&user, uc.Env.AccessTokenSecret, uc.Env.AccessTokenExpiryHour)
+	accessToken, err := uc.RefreshTokenUsecase.CreateAccessToken(&user, uc.Config.AccessTokenSecret, uc.Config.AccessTokenExpiryHour)
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := uc.RefreshTokenUsecase.CreateRefreshToken(&user, uc.Env.RefreshTokenSecret, uc.Env.RefreshTokenExpiryHour)
+	refreshToken, err := uc.RefreshTokenUsecase.CreateRefreshToken(&user, uc.Config.RefreshTokenSecret, uc.Config.RefreshTokenExpiryHour)
 	if err != nil {
 		return nil, err
 	}
@@ -99,14 +99,17 @@ func (uc UserController) RefreshToken(ctx context.Context, req *userPb.RefreshTo
 }
 
 func (uc UserController) GetUserByID(ctx context.Context, req *empty.Empty) (*userPb.GetUserByIDResponse, error) {
-	// userID := c.GetString("x-user-id")
+	claims := ctx.Value("claims")
 
-	// user, err := uc.UserUsecase.GetUserByID(c, userID)
-	// if err != nil {
-	// 	c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
-	// 	return
-	// }
+	user, err := uc.UserUsecase.GetUserByID(ctx, claims.(jwt.MapClaims)["id"].(string))
+	if err != nil {
+		return nil, err
+	}
 
-	// c.JSON(http.StatusOK, user)
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserByID not implemented")
+	res := &userPb.GetUserByIDResponse{
+		Name:  user.Name,
+		Email: user.Email,
+	}
+
+	return res, nil
 }

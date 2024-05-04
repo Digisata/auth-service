@@ -7,6 +7,7 @@ import (
 
 	"github.com/digisata/auth-service/bootstrap"
 	"github.com/digisata/auth-service/pkg/interceptors"
+	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcRetry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -37,13 +38,15 @@ func NewGrpcClient(ctx context.Context, cfg *bootstrap.Config, im interceptors.I
 
 	opts = append(
 		opts,
-		grpc.WithUnaryInterceptor(im.ClientRequestLoggerInterceptor()),
-		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
-		grpc.WithUnaryInterceptor(grpcRetry.UnaryClientInterceptor([]grpcRetry.CallOption{
-			grpcRetry.WithBackoff(grpcRetry.BackoffLinear(backoffLinear)),
-			grpcRetry.WithCodes(codes.NotFound, codes.Aborted),
-			grpcRetry.WithMax(backoffRetries),
-		}...)),
+		grpc.WithUnaryInterceptor(grpcMiddleware.ChainUnaryClient(
+			im.ClientRequestLoggerInterceptor(),
+			otelgrpc.UnaryClientInterceptor(),
+			grpcRetry.UnaryClientInterceptor([]grpcRetry.CallOption{
+				grpcRetry.WithBackoff(grpcRetry.BackoffLinear(backoffLinear)),
+				grpcRetry.WithCodes(codes.NotFound, codes.Aborted),
+				grpcRetry.WithMax(backoffRetries),
+			}...),
+		)),
 	)
 
 	conn, err := grpc.DialContext(ctx, fmt.Sprintf(":%v", cfg.GrpcPort), opts...)

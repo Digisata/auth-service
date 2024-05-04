@@ -3,26 +3,34 @@ package jwtio
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
 	"github.com/digisata/auth-service/bootstrap"
 	"github.com/digisata/auth-service/domain"
+	"github.com/digisata/auth-service/pkg/constants"
 	"github.com/golang-jwt/jwt/v4"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
-const (
-	FAILED_TO_EXTRACT         = "failed to extract jwt payload"
-	UNEXPECTED_SIGNING_METHOD = "unexpected signing method: %v"
-)
+type (
+	JSONWebToken struct {
+		cfg *bootstrap.Config
+	}
 
-type JSONWebToken struct {
-	cfg *bootstrap.Config
-}
+	JwtCustomClaims struct {
+		Name string `json:"name"`
+		ID   string `json:"id"`
+		jwt.RegisteredClaims
+	}
+
+	JwtCustomRefreshClaims struct {
+		ID string `json:"id"`
+		jwt.RegisteredClaims
+	}
+)
 
 func NewJSONWebToken(cfg *bootstrap.Config) *JSONWebToken {
 	return &JSONWebToken{
@@ -31,12 +39,14 @@ func NewJSONWebToken(cfg *bootstrap.Config) *JSONWebToken {
 }
 
 func (j JSONWebToken) CreateAccessToken(user *domain.User, secret string, expiry int) (accessToken string, err error) {
-	exp := time.Now().Add(time.Hour * time.Duration(expiry)).Unix()
-	claims := &domain.JwtCustomClaims{
+	now := time.Now()
+	claims := &JwtCustomClaims{
 		Name: user.Name,
 		ID:   user.ID.Hex(),
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: exp,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   user.ID.Hex(),
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(time.Second * time.Duration(expiry))),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -50,14 +60,16 @@ func (j JSONWebToken) CreateAccessToken(user *domain.User, secret string, expiry
 }
 
 func (j JSONWebToken) CreateRefreshToken(user *domain.User, secret string, expiry int) (refreshToken string, err error) {
-	exp := time.Now().Add(time.Hour * time.Duration(expiry)).Unix()
-	claimsRefresh := &domain.JwtCustomRefreshClaims{
+	now := time.Now()
+	claims := &JwtCustomRefreshClaims{
 		ID: user.ID.Hex(),
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: exp,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   user.ID.Hex(),
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * time.Duration(expiry))),
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claimsRefresh)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	rt, err := token.SignedString([]byte(secret))
 	if err != nil {
@@ -67,14 +79,14 @@ func (j JSONWebToken) CreateRefreshToken(user *domain.User, secret string, expir
 	return rt, nil
 }
 
-func (j JSONWebToken) Validate(ctx context.Context) (jwt.MapClaims, error) {
+func (j JSONWebToken) Verify(ctx context.Context) (jwt.MapClaims, error) {
 	accessToken, err := getAccessToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
-		return j.validateLoginToken(token)
+		return j.validateToken(token, j.cfg.AccessTokenSecret)
 	})
 	if err != nil {
 		return nil, err
@@ -82,49 +94,15 @@ func (j JSONWebToken) Validate(ctx context.Context) (jwt.MapClaims, error) {
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok && !token.Valid {
-		return nil, fmt.Errorf(FAILED_TO_EXTRACT)
+		return nil, status.Error(codes.Unauthenticated, constants.FAILED_TO_EXTRACT)
 	}
 
 	return claims, nil
 }
 
-func (j JSONWebToken) validateLoginToken(token *jwt.Token) (interface{}, error) {
-	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, fmt.Errorf(UNEXPECTED_SIGNING_METHOD, token.Header["alg"])
-	}
-
-	return []byte(j.cfg.AccessTokenSecret), nil
-}
-
-func getAccessToken(ctx context.Context) (string, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return "", status.Error(codes.Unauthenticated, "metadata is not provided")
-	}
-
-	values := md["authorization"]
-	if len(values) == 0 {
-		return "", status.Error(codes.Unauthenticated, "authorization token is not provided")
-	}
-
-	split := strings.Split(values[0], " ")
-	if len(split) != 2 {
-		return "", status.Error(codes.Unauthenticated, "invalid access token format")
-	}
-
-	if split[0] != "Bearer" {
-		return "", status.Error(codes.Unauthenticated, "invalid access token format")
-	}
-
-	return split[1], nil
-}
-
-func (j *JSONWebToken) ExtractIDFromToken(requestToken string, secret string) (string, error) {
-	token, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf(UNEXPECTED_SIGNING_METHOD, token.Header["alg"])
-		}
-		return []byte(secret), nil
+func (j JSONWebToken) ExtractIDFromToken(refreshToken string, secret string) (string, error) {
+	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+		return j.validateToken(token, j.cfg.RefreshTokenSecret)
 	})
 	if err != nil {
 		return "", err
@@ -132,8 +110,40 @@ func (j *JSONWebToken) ExtractIDFromToken(requestToken string, secret string) (s
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok && !token.Valid {
-		return "", fmt.Errorf(FAILED_TO_EXTRACT)
+		return "", status.Error(codes.Unauthenticated, constants.FAILED_TO_EXTRACT)
 	}
 
 	return claims["id"].(string), nil
+}
+
+func (j JSONWebToken) validateToken(token *jwt.Token, secret string) (interface{}, error) {
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, status.Error(codes.Unauthenticated, constants.UNEXPECTED_SIGNING_METHOD)
+
+	}
+
+	return []byte(secret), nil
+}
+
+func getAccessToken(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", status.Error(codes.Unauthenticated, "Metadata is not provided")
+	}
+
+	values := md["authorization"]
+	if len(values) == 0 {
+		return "", status.Error(codes.Unauthenticated, "Authorization token is not provided")
+	}
+
+	split := strings.Split(values[0], " ")
+	if len(split) != 2 {
+		return "", status.Error(codes.Unauthenticated, "Invalid access token format")
+	}
+
+	if split[0] != "Bearer" {
+		return "", status.Error(codes.Unauthenticated, "Invalid access token format")
+	}
+
+	return split[1], nil
 }

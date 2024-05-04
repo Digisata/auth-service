@@ -41,7 +41,6 @@ service AuthService {
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        security: {}
         tags: ["User"]
         summary: "Create user"
         description: "This API for create user"
