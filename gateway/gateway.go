@@ -89,7 +89,7 @@ func (gw *Gateway) Run(ctx context.Context, cfg *bootstrap.Config) error {
 				return
 			}
 			mux.ServeHTTP(writer, request)
-		}), cfg),
+		}), cfg.ServerAddress),
 		ReadTimeout:    gw.ReadTimeout,
 		WriteTimeout:   gw.WriteTimeout,
 		MaxHeaderBytes: gw.MaxHeaderBytes,

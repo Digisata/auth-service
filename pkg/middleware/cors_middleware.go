@@ -5,9 +5,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/digisata/auth-service/bootstrap"
-	"github.com/digisata/auth-service/pkg/utils"
-
 	"github.com/spf13/viper"
 )
 
@@ -33,12 +30,12 @@ func allowedOrigin(origin string) bool {
 	return matched
 }
 
-func CORS(h http.Handler, cfg *bootstrap.Config) http.Handler {
+func CORS(h http.Handler, env string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Strict-Transport-Security", "max-age=31536000")
 
 		if allowedOrigin(r.Header.Get("Origin")) {
-			if utils.GetEnv("APP_ENV", "dev") != "prod" {
+			if env != "prod" {
 				w.Header().Set("Content-Security-Policy", "object-src 'none'; child-src 'none'; script-src 'unsafe-inline' https: http: ")
 				w.Header().Set("X-Content-Type-Options", "nosniff")
 				w.Header().Set("X-Frame-Options", "DENY")

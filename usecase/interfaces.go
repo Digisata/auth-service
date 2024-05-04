@@ -8,9 +8,9 @@ import (
 
 type (
 	UserRepository interface {
-		Create(c context.Context, user *domain.User) error
-		Fetch(c context.Context) ([]domain.User, error)
-		GetByEmail(c context.Context, email string) (domain.User, error)
-		GetByID(c context.Context, id string) (domain.User, error)
+		Create(ctx context.Context, req domain.User) error
+		Fetch(ctx context.Context) ([]domain.User, error)
+		GetByEmail(ctx context.Context, email string) (domain.User, error)
+		GetByID(ctx context.Context, id string) (domain.User, error)
 	}
 )

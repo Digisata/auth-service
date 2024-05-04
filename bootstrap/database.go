@@ -13,10 +13,10 @@ func NewMongoDatabase(cfg *Config) (mongo.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	dbHost := cfg.DBHost
-	dbPort := cfg.DBPort
-	dbUser := cfg.DBUser
-	dbPass := cfg.DBPass
+	dbHost := cfg.Mongo.DBHost
+	dbPort := cfg.Mongo.DBPort
+	dbUser := cfg.Mongo.DBUser
+	dbPass := cfg.Mongo.DBPass
 
 	mongodbURI := fmt.Sprintf("mongodb://%s:%s@%s:%s", dbUser, dbPass, dbHost, dbPort)
 

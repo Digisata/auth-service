@@ -18,7 +18,12 @@ type (
 	}
 
 	UserProfile struct {
-		Name  string `json:"name"`
-		Email string `json:"email"`
+		Name  string
+		Email string
+	}
+
+	Login struct {
+		AccessToken  string
+		RefreshToken string
 	}
 )

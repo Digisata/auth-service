@@ -6,7 +6,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/digisata/auth-service/bootstrap"
 	"github.com/digisata/auth-service/pkg/constants"
 	"github.com/digisata/auth-service/pkg/interceptors"
 	"github.com/pkg/errors"
@@ -22,13 +21,21 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 )
 
-type GrpcServer struct {
-	*grpc.Server
-	logger   *zap.SugaredLogger
-	Listener net.Listener
-	Port     string
-	Network  string
-}
+type (
+	Config struct {
+		Port    string `mapstructure:"PORT"`
+		Network string `mapstructure:"NETWORK"`
+		Tls     bool   `mapstructure:"TLS"`
+	}
+
+	GrpcServer struct {
+		*grpc.Server
+		logger   *zap.SugaredLogger
+		Listener net.Listener
+		Port     string
+		Network  string
+	}
+)
 
 const (
 	maxConnectionIdle time.Duration = 300
@@ -37,8 +44,8 @@ const (
 	gRPCTime          time.Duration = 600
 )
 
-func NewGrpcServer(cfg *bootstrap.Config, im interceptors.InterceptorManager, logger *zap.SugaredLogger, opts ...grpc.ServerOption) (*GrpcServer, error) {
-	if cfg.GrpcTls {
+func NewGrpcServer(cfg Config, im interceptors.InterceptorManager, logger *zap.SugaredLogger, opts ...grpc.ServerOption) (*GrpcServer, error) {
+	if cfg.Tls {
 		certFile := "ssl/certificates/server.crt" // => your certFile file path
 		keyFile := "ssl/server.pem"               // => your keyFile file patn
 
@@ -73,8 +80,8 @@ func NewGrpcServer(cfg *bootstrap.Config, im interceptors.InterceptorManager, lo
 	return &GrpcServer{
 		logger:  logger,
 		Server:  server,
-		Network: cfg.GrpcNetwork,
-		Port:    cfg.GrpcPort,
+		Network: cfg.Network,
+		Port:    cfg.Port,
 	}, nil
 }
 

@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/digisata/auth-service/bootstrap"
-	"github.com/digisata/auth-service/domain"
 	"github.com/digisata/auth-service/pkg/constants"
 	"github.com/golang-jwt/jwt/v4"
 	"google.golang.org/grpc/codes"
@@ -16,13 +14,28 @@ import (
 )
 
 type (
+	Config struct {
+		AccessTokenExpiryHour  int    `mapstructure:"ACCESS_TOKEN_EXPIRY_HOUR"`
+		RefreshTokenExpiryHour int    `mapstructure:"REFRESH_TOKEN_EXPIRY_HOUR"`
+		AccessTokenSecret      string `mapstructure:"ACCESS_TOKEN_SECRET"`
+		RefreshTokenSecret     string `mapstructure:"REFRESH_TOKEN_SECRET"`
+	}
+
+	Payload struct {
+		ID    string
+		Name  string
+		Email string
+		Role  string
+	}
+
 	JSONWebToken struct {
-		cfg *bootstrap.Config
+		cfg *Config
 	}
 
 	JwtCustomClaims struct {
-		Name string `json:"name"`
 		ID   string `json:"id"`
+		Name string `json:"name"`
+		Role string `json:"role"`
 		jwt.RegisteredClaims
 	}
 
@@ -32,21 +45,21 @@ type (
 	}
 )
 
-func NewJSONWebToken(cfg *bootstrap.Config) *JSONWebToken {
+func NewJSONWebToken(cfg *Config) *JSONWebToken {
 	return &JSONWebToken{
 		cfg: cfg,
 	}
 }
 
-func (j JSONWebToken) CreateAccessToken(user *domain.User, secret string, expiry int) (accessToken string, err error) {
+func (j JSONWebToken) CreateAccessToken(payload Payload, secret string, expiry int) (accessToken string, err error) {
 	now := time.Now()
 	claims := &JwtCustomClaims{
-		Name: user.Name,
-		ID:   user.ID.Hex(),
+		Name: payload.Name,
+		ID:   payload.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   user.ID.Hex(),
+			Subject:   payload.Email,
 			IssuedAt:  jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(now.Add(time.Second * time.Duration(expiry))),
+			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * time.Duration(expiry))),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -59,12 +72,12 @@ func (j JSONWebToken) CreateAccessToken(user *domain.User, secret string, expiry
 	return t, nil
 }
 
-func (j JSONWebToken) CreateRefreshToken(user *domain.User, secret string, expiry int) (refreshToken string, err error) {
+func (j JSONWebToken) CreateRefreshToken(payload Payload, secret string, expiry int) (refreshToken string, err error) {
 	now := time.Now()
 	claims := &JwtCustomRefreshClaims{
-		ID: user.ID.Hex(),
+		ID: payload.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   user.ID.Hex(),
+			Subject:   payload.Email,
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * time.Duration(expiry))),
 		},

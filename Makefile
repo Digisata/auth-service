@@ -2,7 +2,7 @@ SERVICE_NAME=auth-service
 ENGINE=main.go
 BUILD_DIR=build
 
-.PHONY: build run docker-build docker-run docker-build-run check-if-present-env check-if-valid-env clean-proto proto-gen ssl-gen
+.PHONY: build run docker-build docker-run docker-build-run docker docker-down check-if-present-env check-if-valid-env clean-proto proto-gen ssl-gen
 
 CHECK_ENV := production|staging|local
 
@@ -35,6 +35,14 @@ docker-run:
 	@docker ps
 
 docker-build-run: docker-build docker-run
+
+docker:
+	@echo Starting docker compose
+	docker-compose -f docker-compose.yaml up -d --build
+
+docker-down:
+	@echo Stopping docker compose
+	docker-compose -f docker-compose.yaml down
 
 build:
 	@echo "Building app"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/digisata/auth-service/bootstrap"
+	"github.com/digisata/auth-service/pkg/grpcserver"
 	"github.com/digisata/auth-service/pkg/interceptors"
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcRetry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
@@ -22,8 +22,8 @@ const (
 	backoffRetries uint          = 3
 )
 
-func NewGrpcClient(ctx context.Context, cfg *bootstrap.Config, im interceptors.InterceptorManager, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
-	if cfg.GrpcTls {
+func NewGrpcClient(ctx context.Context, cfg grpcserver.Config, im interceptors.InterceptorManager, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+	if cfg.Tls {
 		certFile := "ssl/certificates/ca.crt" // => file path location your certFile
 		creds, err := credentials.NewClientTLSFromFile(certFile, "")
 		if err != nil {
@@ -49,7 +49,7 @@ func NewGrpcClient(ctx context.Context, cfg *bootstrap.Config, im interceptors.I
 		)),
 	)
 
-	conn, err := grpc.DialContext(ctx, fmt.Sprintf(":%v", cfg.GrpcPort), opts...)
+	conn, err := grpc.DialContext(ctx, fmt.Sprintf(":%v", cfg.Port), opts...)
 	if err != nil {
 		return nil, errors.Wrap(err, "grpc.DialContext")
 	}

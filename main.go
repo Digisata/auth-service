@@ -35,10 +35,10 @@ func main() {
 
 	cfg := app.Cfg
 
-	db := app.Mongo.Database(cfg.DBName)
+	db := app.Mongo.Database(cfg.Mongo.DBName)
 	defer app.CloseDBConnection()
 
-	jwt := jwtio.NewJSONWebToken(cfg)
+	jwt := jwtio.NewJSONWebToken(&cfg.Jwt)
 
 	logger, _ := zap.NewProduction()
 	defer logger.Sync() // flushes buffer, if any
@@ -47,7 +47,7 @@ func main() {
 
 	im := interceptors.NewInterceptorManager(jwt, sugar)
 
-	grpcServer, err := grpcserver.NewGrpcServer(cfg, im, sugar)
+	grpcServer, err := grpcserver.NewGrpcServer(cfg.GrpcServer, im, sugar)
 	if err != nil {
 		panic(err)
 	}
@@ -55,10 +55,7 @@ func main() {
 	ur := repository.NewUserRepository(db, domain.CollectionUser)
 	timeout := time.Duration(cfg.ContextTimeout) * time.Second
 	uc := &controller.UserController{
-		Config:              cfg,
-		LoginUsecase:        usecase.NewLoginUsecase(jwt, ur, timeout),
-		RefreshTokenUsecase: usecase.NewRefreshTokenUsecase(jwt, ur, timeout),
-		UserUsecase:         usecase.NewUserUsecase(ur, timeout),
+		UserUsecase: usecase.NewUserUsecase(jwt, cfg, ur, timeout),
 	}
 
 	userPb.RegisterAuthServiceServer(grpcServer, uc)
@@ -70,7 +67,7 @@ func main() {
 	}
 	defer grpcServer.Stop(ctx)
 
-	grpcClientConn, err := grpcclient.NewGrpcClient(ctx, cfg, im, grpc.WithBlock())
+	grpcClientConn, err := grpcclient.NewGrpcClient(ctx, cfg.GrpcServer, im, grpc.WithBlock())
 	if err != nil {
 		panic(err)
 	}
