@@ -87,12 +87,12 @@ func (uu UserUsecase) Login(ctx context.Context, req domain.User) (domain.Login,
 	return res, nil
 }
 
-func (uu UserUsecase) RefreshToken(ctx context.Context, refreshToken string) (domain.Login, error) {
+func (uu UserUsecase) RefreshToken(ctx context.Context, req domain.RefreshTokenRequest) (domain.Login, error) {
 	var res domain.Login
 	ctx, cancel := context.WithTimeout(ctx, uu.timeout)
 	defer cancel()
 
-	jwt, err := uu.jwt.VerifyRefreshToken(refreshToken, uu.cfg.Jwt.RefreshTokenSecret)
+	jwt, err := uu.jwt.VerifyRefreshToken(req.RefreshToken, uu.cfg.Jwt.RefreshTokenSecret)
 	if err != nil {
 		return res, err
 	}
@@ -142,7 +142,12 @@ func (uu UserUsecase) RefreshToken(ctx context.Context, refreshToken string) (do
 		return res, err
 	}
 
-	err = uu.cr.Delete(refreshToken)
+	err = uu.cr.Delete(req.AccessToken)
+	if err != nil {
+		return res, err
+	}
+
+	err = uu.cr.Delete(req.RefreshToken)
 	if err != nil {
 		return res, err
 	}

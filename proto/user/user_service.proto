@@ -84,7 +84,7 @@ service AuthService {
     };
   }
 
-  rpc Logout (RefreshTokenRequest) returns (BaseResponse) {
+  rpc Logout (LogoutRequest) returns (BaseResponse) {
     option (google.api.http) = {
       post: "/api/v1/logout",
       body: "*"

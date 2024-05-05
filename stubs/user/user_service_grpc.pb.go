@@ -35,7 +35,7 @@ type AuthServiceClient interface {
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*BaseResponse, error)
 	GetUserByID(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetUserByIDResponse, error)
-	Logout(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*BaseResponse, error)
+	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*BaseResponse, error)
 }
 
 type authServiceClient struct {
@@ -82,7 +82,7 @@ func (c *authServiceClient) GetUserByID(ctx context.Context, in *emptypb.Empty, 
 	return out, nil
 }
 
-func (c *authServiceClient) Logout(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*BaseResponse, error) {
+func (c *authServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*BaseResponse, error) {
 	out := new(BaseResponse)
 	err := c.cc.Invoke(ctx, AuthService_Logout_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -99,7 +99,7 @@ type AuthServiceServer interface {
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*BaseResponse, error)
 	GetUserByID(context.Context, *emptypb.Empty) (*GetUserByIDResponse, error)
-	Logout(context.Context, *RefreshTokenRequest) (*BaseResponse, error)
+	Logout(context.Context, *LogoutRequest) (*BaseResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -119,7 +119,7 @@ func (UnimplementedAuthServiceServer) CreateUser(context.Context, *CreateUserReq
 func (UnimplementedAuthServiceServer) GetUserByID(context.Context, *emptypb.Empty) (*GetUserByIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserByID not implemented")
 }
-func (UnimplementedAuthServiceServer) Logout(context.Context, *RefreshTokenRequest) (*BaseResponse, error) {
+func (UnimplementedAuthServiceServer) Logout(context.Context, *LogoutRequest) (*BaseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
@@ -208,7 +208,7 @@ func _AuthService_GetUserByID_Handler(srv interface{}, ctx context.Context, dec 
 }
 
 func _AuthService_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RefreshTokenRequest)
+	in := new(LogoutRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func _AuthService_Logout_Handler(srv interface{}, ctx context.Context, dec func(
 		FullMethod: AuthService_Logout_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).Logout(ctx, req.(*RefreshTokenRequest))
+		return srv.(AuthServiceServer).Logout(ctx, req.(*LogoutRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

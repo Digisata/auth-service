@@ -55,7 +55,12 @@ func (uc UserController) Login(ctx context.Context, req *userPb.LoginRequest) (*
 }
 
 func (uc UserController) RefreshToken(ctx context.Context, req *userPb.RefreshTokenRequest) (*userPb.RefreshTokenResponse, error) {
-	data, err := uc.UserUsecase.RefreshToken(ctx, req.GetRefreshToken())
+	refreshTokenRequest := domain.RefreshTokenRequest{
+		AccessToken:  req.GetAccessToken(),
+		RefreshToken: req.GetRefreshToken(),
+	}
+
+	data, err := uc.UserUsecase.RefreshToken(ctx, refreshTokenRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +89,7 @@ func (uc UserController) GetUserByID(ctx context.Context, req *empty.Empty) (*us
 	return res, nil
 }
 
-func (uc UserController) Logout(ctx context.Context, req *userPb.RefreshTokenRequest) (*userPb.BaseResponse, error) {
+func (uc UserController) Logout(ctx context.Context, req *userPb.LogoutRequest) (*userPb.BaseResponse, error) {
 	err := uc.UserUsecase.Logout(ctx, req.GetRefreshToken())
 	if err != nil {
 		return nil, err

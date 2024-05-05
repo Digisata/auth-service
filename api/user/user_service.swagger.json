@@ -76,7 +76,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/userRefreshTokenRequest"
+              "$ref": "#/definitions/userLogoutRequest"
             }
           }
         ],
@@ -264,9 +264,20 @@
         }
       }
     },
+    "userLogoutRequest": {
+      "type": "object",
+      "properties": {
+        "refresh_token": {
+          "type": "string"
+        }
+      }
+    },
     "userRefreshTokenRequest": {
       "type": "object",
       "properties": {
+        "access_token": {
+          "type": "string"
+        },
         "refresh_token": {
           "type": "string"
         }

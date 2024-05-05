@@ -26,7 +26,8 @@ message LoginResponse {
 }
 
 message RefreshTokenRequest {
-    string refresh_token = 1 [json_name = "refresh_token"];
+    string access_token = 1 [json_name = "access_token"];
+    string refresh_token = 2 [json_name = "refresh_token"];
 }
 
 message RefreshTokenResponse {
@@ -37,4 +38,8 @@ message RefreshTokenResponse {
 message GetUserByIDResponse {
     string name = 1 [json_name = "name"];
     string email = 2 [json_name = "email"];
+}
+
+message LogoutRequest {
+    string refresh_token = 1 [json_name = "refresh_token"];
 }

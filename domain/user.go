@@ -26,4 +26,9 @@ type (
 		AccessToken  string
 		RefreshToken string
 	}
+
+	RefreshTokenRequest struct {
+		AccessToken  string
+		RefreshToken string
+	}
 )
