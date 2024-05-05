@@ -59,6 +59,7 @@ go.work
 .ionide
 
 .env
+config.yaml
 
 # SSL
 ssl/certificates/*

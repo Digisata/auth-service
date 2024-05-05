@@ -38,11 +38,11 @@ docker-build-run: docker-build docker-run
 
 docker:
 	@echo Starting docker compose
-	docker-compose -f docker-compose.yaml up -d --build
+	docker compose -f docker-compose.yaml up -d --build
 
 docker-down:
 	@echo Stopping docker compose
-	docker-compose -f docker-compose.yaml down
+	docker compose -f docker-compose.yaml down
 
 build:
 	@echo "Building app"

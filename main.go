@@ -73,7 +73,7 @@ func main() {
 	}
 	defer grpcClientConn.Close()
 
-	gatewayServer := gateway.NewGateway(cfg.ServerAddress)
+	gatewayServer := gateway.NewGateway(cfg.Port)
 	err = userPb.RegisterAuthServiceHandler(ctx, gatewayServer.ServeMux, grpcClientConn)
 	if err != nil {
 		panic(err)

@@ -12,7 +12,7 @@ import (
 
 type Config struct {
 	AppEnv         string            `mapstructure:"APP_ENV"`
-	ServerAddress  string            `mapstructure:"SERVER_ADDRESS"`
+	Port           string            `mapstructure:"PORT"`
 	ContextTimeout int               `mapstructure:"CONTEXT_TIMEOUT"`
 	Jwt            jwtio.Config      `mapstructure:"JWT"`
 	Mongo          mongo.Config      `mapstructure:"MONGO"`
@@ -21,11 +21,15 @@ type Config struct {
 
 func LoadConfig() (*Config, error) {
 	cfg := Config{}
-	viper.SetConfigFile(".env")
+
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+	viper.AutomaticEnv()
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		return nil, fmt.Errorf("can't find the file .env : %v", err)
+		return nil, fmt.Errorf("can't find the config file: %v", err)
 	}
 
 	err = viper.Unmarshal(&cfg)
@@ -34,7 +38,7 @@ func LoadConfig() (*Config, error) {
 	}
 
 	if cfg.AppEnv == "development" {
-		log.Println("The App is running in development env")
+		log.Println("The App is running in development environment")
 	}
 
 	return &cfg, nil
