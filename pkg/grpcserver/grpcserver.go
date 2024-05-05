@@ -69,8 +69,8 @@ func NewGrpcServer(cfg Config, im interceptors.InterceptorManager, logger *zap.S
 			grpcPrometheus.UnaryServerInterceptor,
 			grpcRecovery.UnaryServerInterceptor(),
 			otelgrpc.UnaryServerInterceptor(),
-			im.AuthInterceptor,
 			im.Logger,
+			im.AuthInterceptor,
 		)),
 	)
 

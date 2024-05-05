@@ -1,4 +1,4 @@
-version: "3.9"
+version: '3.9'
 
 services:
   auth-service:
@@ -10,9 +10,10 @@ services:
     restart: unless-stopped
     env_file: .env
     ports:
-      - "$PORT:$PORT"
+      - '$PORT:$PORT'
     depends_on:
       - mongodb
+      - memcached
 
   mongodb:
     image: mongo:6.0
@@ -23,9 +24,17 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=$DB_USER
       - MONGO_INITDB_ROOT_PASSWORD=$DB_PASS
     ports:
-      - "$DB_PORT:$DB_PORT"
+      - '$DB_PORT:$DB_PORT'
     volumes:
       - dbdata:/data/db
+
+  memcached:
+    image: memcached
+    container_name: memcached
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - '$MEMCACHED_PORT:$MEMCACHED_PORT'
 
 volumes:
   dbdata:

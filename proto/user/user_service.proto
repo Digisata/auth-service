@@ -35,18 +35,6 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 service AuthService {
-  rpc CreateUser (CreateUserRequest) returns (BaseResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/users",
-      body: "*"
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        tags: ["User"]
-        summary: "Create user"
-        description: "This API for create user"
-    };
-  }
-
   rpc Login (LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
       post: "/api/v1/login",
@@ -55,8 +43,8 @@ service AuthService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
         security: {}
         tags: ["User"]
-        summary: "Login user"
-        description: "This API for login user"
+        summary: "User login"
+        description: "This API for user login"
     };
   }
 
@@ -73,6 +61,18 @@ service AuthService {
     };
   }
 
+  rpc CreateUser (CreateUserRequest) returns (BaseResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users",
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags: ["User"]
+        summary: "Create user"
+        description: "This API for create user"
+    };
+  }
+
   rpc GetUserByID (google.protobuf.Empty) returns (GetUserByIDResponse) {
     option (google.api.http) = {
       get: "/api/v1/users",
@@ -81,6 +81,18 @@ service AuthService {
         tags: ["User"]
         summary: "Get user by id"
         description: "This API for get user by id"
+    };
+  }
+
+  rpc Logout (RefreshTokenRequest) returns (BaseResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/logout",
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags: ["User"]
+        summary: "User logout"
+        description: "This API for user logout"
     };
   }
 }

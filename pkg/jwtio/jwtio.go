@@ -3,10 +3,13 @@ package jwtio
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/digisata/auth-service/pkg/constants"
+	"github.com/digisata/auth-service/pkg/memcached"
 	"github.com/golang-jwt/jwt/v4"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -29,7 +32,8 @@ type (
 	}
 
 	JSONWebToken struct {
-		cfg *Config
+		cfg         *Config
+		memcachedDB *memcached.Database
 	}
 
 	JwtCustomClaims struct {
@@ -45,14 +49,14 @@ type (
 	}
 )
 
-func NewJSONWebToken(cfg *Config) *JSONWebToken {
+func NewJSONWebToken(cfg *Config, memcachedDB *memcached.Database) *JSONWebToken {
 	return &JSONWebToken{
-		cfg: cfg,
+		cfg:         cfg,
+		memcachedDB: memcachedDB,
 	}
 }
 
-func (j JSONWebToken) CreateAccessToken(payload Payload, secret string, expiry int) (accessToken string, err error) {
-	now := time.Now()
+func (j JSONWebToken) CreateAccessToken(payload Payload, secret string, now time.Time, expiry int) (accessToken string, err error) {
 	claims := &JwtCustomClaims{
 		Name: payload.Name,
 		ID:   payload.ID,
@@ -72,8 +76,7 @@ func (j JSONWebToken) CreateAccessToken(payload Payload, secret string, expiry i
 	return t, nil
 }
 
-func (j JSONWebToken) CreateRefreshToken(payload Payload, secret string, expiry int) (refreshToken string, err error) {
-	now := time.Now()
+func (j JSONWebToken) CreateRefreshToken(payload Payload, secret string, now time.Time, expiry int) (refreshToken string, err error) {
 	claims := &JwtCustomRefreshClaims{
 		ID: payload.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -93,8 +96,17 @@ func (j JSONWebToken) CreateRefreshToken(payload Payload, secret string, expiry 
 }
 
 func (j JSONWebToken) Verify(ctx context.Context) (jwt.MapClaims, error) {
-	accessToken, err := getAccessToken(ctx)
+	accessToken, err := j.GetAccessToken(ctx)
 	if err != nil {
+		return nil, err
+	}
+
+	_, err = j.memcachedDB.Get(accessToken)
+	if err != nil {
+		if errors.Is(err, memcache.ErrCacheMiss) {
+			return nil, status.Error(codes.Unauthenticated, constants.TOKEN_EXPIRED)
+		}
+
 		return nil, err
 	}
 
@@ -113,14 +125,27 @@ func (j JSONWebToken) Verify(ctx context.Context) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
-func (j JSONWebToken) ExtractIDFromToken(refreshToken string, secret string) (string, error) {
+func (j JSONWebToken) VerifyRefreshToken(refreshToken, secret string) (*jwt.Token, error) {
+	_, err := j.memcachedDB.Get(refreshToken)
+	if err != nil {
+		if errors.Is(err, memcache.ErrCacheMiss) {
+			return nil, status.Error(codes.Unauthenticated, constants.REFRESH_TOKEN_EXPIRED)
+		}
+
+		return nil, err
+	}
+
 	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
 		return j.validateToken(token, j.cfg.RefreshTokenSecret)
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
+	return token, nil
+}
+
+func (j JSONWebToken) ExtractIDFromToken(token *jwt.Token) (string, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok && !token.Valid {
 		return "", status.Error(codes.Unauthenticated, constants.FAILED_TO_EXTRACT)
@@ -138,7 +163,7 @@ func (j JSONWebToken) validateToken(token *jwt.Token, secret string) (interface{
 	return []byte(secret), nil
 }
 
-func getAccessToken(ctx context.Context) (string, error) {
+func (j JSONWebToken) GetAccessToken(ctx context.Context) (string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return "", status.Error(codes.Unauthenticated, "Metadata is not provided")

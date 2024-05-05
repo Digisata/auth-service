@@ -59,6 +59,7 @@ func (uc UserController) RefreshToken(ctx context.Context, req *userPb.RefreshTo
 	if err != nil {
 		return nil, err
 	}
+
 	res := &userPb.RefreshTokenResponse{
 		AccessToken:  data.AccessToken,
 		RefreshToken: data.RefreshToken,
@@ -78,6 +79,19 @@ func (uc UserController) GetUserByID(ctx context.Context, req *empty.Empty) (*us
 	res := &userPb.GetUserByIDResponse{
 		Name:  data.Name,
 		Email: data.Email,
+	}
+
+	return res, nil
+}
+
+func (uc UserController) Logout(ctx context.Context, req *userPb.RefreshTokenRequest) (*userPb.BaseResponse, error) {
+	err := uc.UserUsecase.Logout(ctx, req.GetRefreshToken())
+	if err != nil {
+		return nil, err
+	}
+
+	res := &userPb.BaseResponse{
+		Message: "success",
 	}
 
 	return res, nil

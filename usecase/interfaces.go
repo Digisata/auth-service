@@ -13,4 +13,10 @@ type (
 		GetByEmail(ctx context.Context, email string) (domain.User, error)
 		GetByID(ctx context.Context, id string) (domain.User, error)
 	}
+
+	CacheRepository interface {
+		Set(req domain.CacheItem) error
+		Get(key string) (domain.CacheItem, error)
+		Delete(key string) error
+	}
 )

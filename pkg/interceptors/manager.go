@@ -145,5 +145,6 @@ func restrictedMethods() map[string][]string {
 	return map[string][]string{
 		path + "CreateUser":  {constants.ACCESS_TOKEN},
 		path + "GetUserByID": {constants.ACCESS_TOKEN},
+		path + "Logout":      {constants.ACCESS_TOKEN},
 	}
 }

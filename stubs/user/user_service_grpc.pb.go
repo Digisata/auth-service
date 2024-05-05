@@ -20,20 +20,22 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AuthService_CreateUser_FullMethodName   = "/auth_service.user.AuthService/CreateUser"
 	AuthService_Login_FullMethodName        = "/auth_service.user.AuthService/Login"
 	AuthService_RefreshToken_FullMethodName = "/auth_service.user.AuthService/RefreshToken"
+	AuthService_CreateUser_FullMethodName   = "/auth_service.user.AuthService/CreateUser"
 	AuthService_GetUserByID_FullMethodName  = "/auth_service.user.AuthService/GetUserByID"
+	AuthService_Logout_FullMethodName       = "/auth_service.user.AuthService/Logout"
 )
 
 // AuthServiceClient is the client API for AuthService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthServiceClient interface {
-	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*BaseResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
+	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*BaseResponse, error)
 	GetUserByID(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetUserByIDResponse, error)
+	Logout(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*BaseResponse, error)
 }
 
 type authServiceClient struct {
@@ -42,15 +44,6 @@ type authServiceClient struct {
 
 func NewAuthServiceClient(cc grpc.ClientConnInterface) AuthServiceClient {
 	return &authServiceClient{cc}
-}
-
-func (c *authServiceClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*BaseResponse, error) {
-	out := new(BaseResponse)
-	err := c.cc.Invoke(ctx, AuthService_CreateUser_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
@@ -71,9 +64,27 @@ func (c *authServiceClient) RefreshToken(ctx context.Context, in *RefreshTokenRe
 	return out, nil
 }
 
+func (c *authServiceClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*BaseResponse, error) {
+	out := new(BaseResponse)
+	err := c.cc.Invoke(ctx, AuthService_CreateUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authServiceClient) GetUserByID(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetUserByIDResponse, error) {
 	out := new(GetUserByIDResponse)
 	err := c.cc.Invoke(ctx, AuthService_GetUserByID_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) Logout(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*BaseResponse, error) {
+	out := new(BaseResponse)
+	err := c.cc.Invoke(ctx, AuthService_Logout_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -84,10 +95,11 @@ func (c *authServiceClient) GetUserByID(ctx context.Context, in *emptypb.Empty, 
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
 type AuthServiceServer interface {
-	CreateUser(context.Context, *CreateUserRequest) (*BaseResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
+	CreateUser(context.Context, *CreateUserRequest) (*BaseResponse, error)
 	GetUserByID(context.Context, *emptypb.Empty) (*GetUserByIDResponse, error)
+	Logout(context.Context, *RefreshTokenRequest) (*BaseResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -95,17 +107,20 @@ type AuthServiceServer interface {
 type UnimplementedAuthServiceServer struct {
 }
 
-func (UnimplementedAuthServiceServer) CreateUser(context.Context, *CreateUserRequest) (*BaseResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
-}
 func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
 }
 func (UnimplementedAuthServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
 }
+func (UnimplementedAuthServiceServer) CreateUser(context.Context, *CreateUserRequest) (*BaseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
+}
 func (UnimplementedAuthServiceServer) GetUserByID(context.Context, *emptypb.Empty) (*GetUserByIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserByID not implemented")
+}
+func (UnimplementedAuthServiceServer) Logout(context.Context, *RefreshTokenRequest) (*BaseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
@@ -118,24 +133,6 @@ type UnsafeAuthServiceServer interface {
 
 func RegisterAuthServiceServer(s grpc.ServiceRegistrar, srv AuthServiceServer) {
 	s.RegisterService(&AuthService_ServiceDesc, srv)
-}
-
-func _AuthService_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateUserRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).CreateUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthService_CreateUser_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).CreateUser(ctx, req.(*CreateUserRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _AuthService_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -174,6 +171,24 @@ func _AuthService_RefreshToken_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).CreateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_CreateUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).CreateUser(ctx, req.(*CreateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthService_GetUserByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
@@ -192,6 +207,24 @@ func _AuthService_GetUserByID_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefreshTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).Logout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_Logout_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).Logout(ctx, req.(*RefreshTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -199,10 +232,6 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "auth_service.user.AuthService",
 	HandlerType: (*AuthServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "CreateUser",
-			Handler:    _AuthService_CreateUser_Handler,
-		},
 		{
 			MethodName: "Login",
 			Handler:    _AuthService_Login_Handler,
@@ -212,8 +241,16 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AuthService_RefreshToken_Handler,
 		},
 		{
+			MethodName: "CreateUser",
+			Handler:    _AuthService_CreateUser_Handler,
+		},
+		{
 			MethodName: "GetUserByID",
 			Handler:    _AuthService_GetUserByID_Handler,
+		},
+		{
+			MethodName: "Logout",
+			Handler:    _AuthService_Logout_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

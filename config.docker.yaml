@@ -3,11 +3,15 @@ port: 8080
 context_timeout: 2
 
 mongo:
-  db_host: mongo
+  db_host: mongodb
   db_port: 27017
   db_user:
   db_pass:
   db_name: auth-service
+
+memcached:
+  db_host: memcached
+  db_port: 11211
 
 jwt:
   access_token_expiry_hour: 1

@@ -18,8 +18,8 @@
   "paths": {
     "/api/v1/login": {
       "post": {
-        "summary": "Login user",
-        "description": "This API for login user",
+        "summary": "User login",
+        "description": "This API for user login",
         "operationId": "AuthService_Login",
         "responses": {
           "200": {
@@ -49,6 +49,40 @@
           "User"
         ],
         "security": []
+      }
+    },
+    "/api/v1/logout": {
+      "post": {
+        "summary": "User logout",
+        "description": "This API for user logout",
+        "operationId": "AuthService_Logout",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/userBaseResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userRefreshTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "User"
+        ]
       }
     },
     "/api/v1/refresh": {

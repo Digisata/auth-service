@@ -6,6 +6,7 @@ import (
 
 	"github.com/digisata/auth-service/pkg/grpcserver"
 	"github.com/digisata/auth-service/pkg/jwtio"
+	"github.com/digisata/auth-service/pkg/memcached"
 	"github.com/digisata/auth-service/pkg/mongo"
 	"github.com/spf13/viper"
 )
@@ -16,6 +17,7 @@ type Config struct {
 	ContextTimeout int               `mapstructure:"CONTEXT_TIMEOUT"`
 	Jwt            jwtio.Config      `mapstructure:"JWT"`
 	Mongo          mongo.Config      `mapstructure:"MONGO"`
+	Memcached      memcached.Config  `mapstructure:"MEMCACHED"`
 	GrpcServer     grpcserver.Config `mapstructure:"GRPC_SERVER"`
 }
 
