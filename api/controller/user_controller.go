@@ -15,33 +15,51 @@ type UserController struct {
 	UserUsecase UserUsecase
 }
 
-func (uc UserController) CreateUser(ctx context.Context, req *userPb.CreateUserRequest) (*userPb.BaseResponse, error) {
-	user := domain.User{
-		ID:       primitive.NewObjectID(),
-		Name:     req.GetName(),
-		Email:    req.GetEmail(),
-		Password: req.GetPassword(),
-	}
-
-	err := uc.UserUsecase.CreateUser(ctx, user)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &userPb.BaseResponse{
-		Message: "success",
-	}
-
-	return res, nil
-}
-
-func (uc UserController) Login(ctx context.Context, req *userPb.LoginRequest) (*userPb.LoginResponse, error) {
+func (uc UserController) LoginAdmin(ctx context.Context, req *userPb.LoginRequest) (*userPb.LoginResponse, error) {
 	payload := domain.User{
 		Email:    req.GetEmail(),
 		Password: req.GetPassword(),
 	}
 
-	data, err := uc.UserUsecase.Login(ctx, payload)
+	data, err := uc.UserUsecase.LoginAdmin(ctx, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &userPb.LoginResponse{
+		AccessToken:  data.AccessToken,
+		RefreshToken: data.RefreshToken,
+	}
+
+	return res, nil
+}
+
+func (uc UserController) LoginCustomer(ctx context.Context, req *userPb.LoginRequest) (*userPb.LoginResponse, error) {
+	payload := domain.User{
+		Email:    req.GetEmail(),
+		Password: req.GetPassword(),
+	}
+
+	data, err := uc.UserUsecase.LoginCustomer(ctx, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &userPb.LoginResponse{
+		AccessToken:  data.AccessToken,
+		RefreshToken: data.RefreshToken,
+	}
+
+	return res, nil
+}
+
+func (uc UserController) LoginCommittee(ctx context.Context, req *userPb.LoginRequest) (*userPb.LoginResponse, error) {
+	payload := domain.User{
+		Email:    req.GetEmail(),
+		Password: req.GetPassword(),
+	}
+
+	data, err := uc.UserUsecase.LoginCommittee(ctx, payload)
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +86,27 @@ func (uc UserController) RefreshToken(ctx context.Context, req *userPb.RefreshTo
 	res := &userPb.RefreshTokenResponse{
 		AccessToken:  data.AccessToken,
 		RefreshToken: data.RefreshToken,
+	}
+
+	return res, nil
+}
+
+func (uc UserController) CreateUser(ctx context.Context, req *userPb.CreateUserRequest) (*userPb.BaseResponse, error) {
+	user := domain.User{
+		ID:       primitive.NewObjectID(),
+		Name:     req.GetName(),
+		Email:    req.GetEmail(),
+		Password: req.GetPassword(),
+		Role:     int8(req.GetRole()),
+	}
+
+	err := uc.UserUsecase.CreateUser(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &userPb.BaseResponse{
+		Message: "success",
 	}
 
 	return res, nil

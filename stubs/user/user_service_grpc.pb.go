@@ -20,18 +20,22 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AuthService_Login_FullMethodName        = "/auth_service.user.AuthService/Login"
-	AuthService_RefreshToken_FullMethodName = "/auth_service.user.AuthService/RefreshToken"
-	AuthService_CreateUser_FullMethodName   = "/auth_service.user.AuthService/CreateUser"
-	AuthService_GetUserByID_FullMethodName  = "/auth_service.user.AuthService/GetUserByID"
-	AuthService_Logout_FullMethodName       = "/auth_service.user.AuthService/Logout"
+	AuthService_LoginAdmin_FullMethodName     = "/auth_service.user.AuthService/LoginAdmin"
+	AuthService_LoginCustomer_FullMethodName  = "/auth_service.user.AuthService/LoginCustomer"
+	AuthService_LoginCommittee_FullMethodName = "/auth_service.user.AuthService/LoginCommittee"
+	AuthService_RefreshToken_FullMethodName   = "/auth_service.user.AuthService/RefreshToken"
+	AuthService_CreateUser_FullMethodName     = "/auth_service.user.AuthService/CreateUser"
+	AuthService_GetUserByID_FullMethodName    = "/auth_service.user.AuthService/GetUserByID"
+	AuthService_Logout_FullMethodName         = "/auth_service.user.AuthService/Logout"
 )
 
 // AuthServiceClient is the client API for AuthService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthServiceClient interface {
-	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	LoginAdmin(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	LoginCustomer(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	LoginCommittee(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*BaseResponse, error)
 	GetUserByID(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetUserByIDResponse, error)
@@ -46,9 +50,27 @@ func NewAuthServiceClient(cc grpc.ClientConnInterface) AuthServiceClient {
 	return &authServiceClient{cc}
 }
 
-func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+func (c *authServiceClient) LoginAdmin(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
 	out := new(LoginResponse)
-	err := c.cc.Invoke(ctx, AuthService_Login_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, AuthService_LoginAdmin_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) LoginCustomer(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+	out := new(LoginResponse)
+	err := c.cc.Invoke(ctx, AuthService_LoginCustomer_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) LoginCommittee(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+	out := new(LoginResponse)
+	err := c.cc.Invoke(ctx, AuthService_LoginCommittee_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +117,9 @@ func (c *authServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts 
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
 type AuthServiceServer interface {
-	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+	LoginAdmin(context.Context, *LoginRequest) (*LoginResponse, error)
+	LoginCustomer(context.Context, *LoginRequest) (*LoginResponse, error)
+	LoginCommittee(context.Context, *LoginRequest) (*LoginResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*BaseResponse, error)
 	GetUserByID(context.Context, *emptypb.Empty) (*GetUserByIDResponse, error)
@@ -107,8 +131,14 @@ type AuthServiceServer interface {
 type UnimplementedAuthServiceServer struct {
 }
 
-func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
+func (UnimplementedAuthServiceServer) LoginAdmin(context.Context, *LoginRequest) (*LoginResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginAdmin not implemented")
+}
+func (UnimplementedAuthServiceServer) LoginCustomer(context.Context, *LoginRequest) (*LoginResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginCustomer not implemented")
+}
+func (UnimplementedAuthServiceServer) LoginCommittee(context.Context, *LoginRequest) (*LoginResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginCommittee not implemented")
 }
 func (UnimplementedAuthServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
@@ -135,20 +165,56 @@ func RegisterAuthServiceServer(s grpc.ServiceRegistrar, srv AuthServiceServer) {
 	s.RegisterService(&AuthService_ServiceDesc, srv)
 }
 
-func _AuthService_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AuthService_LoginAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(LoginRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServiceServer).Login(ctx, in)
+		return srv.(AuthServiceServer).LoginAdmin(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AuthService_Login_FullMethodName,
+		FullMethod: AuthService_LoginAdmin_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).Login(ctx, req.(*LoginRequest))
+		return srv.(AuthServiceServer).LoginAdmin(ctx, req.(*LoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_LoginCustomer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).LoginCustomer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_LoginCustomer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).LoginCustomer(ctx, req.(*LoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_LoginCommittee_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).LoginCommittee(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_LoginCommittee_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).LoginCommittee(ctx, req.(*LoginRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -233,8 +299,16 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AuthServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Login",
-			Handler:    _AuthService_Login_Handler,
+			MethodName: "LoginAdmin",
+			Handler:    _AuthService_LoginAdmin_Handler,
+		},
+		{
+			MethodName: "LoginCustomer",
+			Handler:    _AuthService_LoginCustomer_Handler,
+		},
+		{
+			MethodName: "LoginCommittee",
+			Handler:    _AuthService_LoginCommittee_Handler,
 		},
 		{
 			MethodName: "RefreshToken",

@@ -28,7 +28,7 @@ type (
 		ID    string
 		Name  string
 		Email string
-		Role  string
+		Role  int8
 	}
 
 	JSONWebToken struct {
@@ -39,7 +39,7 @@ type (
 	JwtCustomClaims struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`
-		Role string `json:"role"`
+		Role int8   `json:"role"`
 		jwt.RegisteredClaims
 	}
 
@@ -56,10 +56,11 @@ func NewJSONWebToken(cfg *Config, memcachedDB *memcached.Database) *JSONWebToken
 	}
 }
 
-func (j JSONWebToken) CreateAccessToken(payload Payload, secret string, now time.Time, expiry int) (accessToken string, err error) {
+func (j JSONWebToken) CreateAccessToken(payload Payload, secret string, now time.Time, expiry int) (string, error) {
 	claims := &JwtCustomClaims{
 		Name: payload.Name,
 		ID:   payload.ID,
+		Role: payload.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   payload.Email,
 			IssuedAt:  jwt.NewNumericDate(now),
@@ -70,13 +71,13 @@ func (j JSONWebToken) CreateAccessToken(payload Payload, secret string, now time
 
 	t, err := token.SignedString([]byte(secret))
 	if err != nil {
-		return "", err
+		return "", status.Error(codes.Internal, err.Error())
 	}
 
 	return t, nil
 }
 
-func (j JSONWebToken) CreateRefreshToken(payload Payload, secret string, now time.Time, expiry int) (refreshToken string, err error) {
+func (j JSONWebToken) CreateRefreshToken(payload Payload, secret string, now time.Time, expiry int) (string, error) {
 	claims := &JwtCustomRefreshClaims{
 		ID: payload.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -89,7 +90,7 @@ func (j JSONWebToken) CreateRefreshToken(payload Payload, secret string, now tim
 
 	rt, err := token.SignedString([]byte(secret))
 	if err != nil {
-		return "", err
+		return "", status.Error(codes.Internal, err.Error())
 	}
 
 	return rt, nil
@@ -107,7 +108,7 @@ func (j JSONWebToken) Verify(ctx context.Context) (jwt.MapClaims, error) {
 			return nil, status.Error(codes.Unauthenticated, constants.TOKEN_EXPIRED)
 		}
 
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
@@ -125,14 +126,14 @@ func (j JSONWebToken) Verify(ctx context.Context) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
-func (j JSONWebToken) VerifyRefreshToken(refreshToken, secret string) (*jwt.Token, error) {
+func (j JSONWebToken) VerifyRefreshToken(refreshToken, secret string) (jwt.MapClaims, error) {
 	_, err := j.memcachedDB.Get(refreshToken)
 	if err != nil {
 		if errors.Is(err, memcache.ErrCacheMiss) {
 			return nil, status.Error(codes.Unauthenticated, constants.REFRESH_TOKEN_EXPIRED)
 		}
 
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
@@ -142,16 +143,22 @@ func (j JSONWebToken) VerifyRefreshToken(refreshToken, secret string) (*jwt.Toke
 		return nil, err
 	}
 
-	return token, nil
-}
-
-func (j JSONWebToken) ExtractIDFromToken(token *jwt.Token) (string, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok && !token.Valid {
-		return "", status.Error(codes.Unauthenticated, constants.FAILED_TO_EXTRACT)
+		return nil, status.Error(codes.Unauthenticated, constants.FAILED_TO_EXTRACT)
 	}
 
-	return claims["id"].(string), nil
+	return claims, nil
+}
+
+func ExtractValueFromToken[T string | int8](token *jwt.Token, key string) (T, error) {
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok && !token.Valid {
+		var zero T
+		return zero, status.Error(codes.Unauthenticated, constants.FAILED_TO_EXTRACT)
+	}
+
+	return claims[key].(T), nil
 }
 
 func (j JSONWebToken) validateToken(token *jwt.Token, secret string) (interface{}, error) {

@@ -10,7 +10,7 @@ message BaseResponse {
 
 message CreateUserRequest {
     string name = 1 [json_name = "name"];
-    string role = 2 [json_name = "role"];
+    int32 role = 2 [json_name = "role"];
     string email = 3 [json_name = "email"];
     string password = 4 [json_name = "password"];
 }

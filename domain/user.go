@@ -4,15 +4,21 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type UserRole int8
+
 const (
 	CollectionUser string = "users"
+
+	Admin UserRole = iota + 1
+	Customer
+	Committee
 )
 
 type (
 	User struct {
 		ID       primitive.ObjectID `bson:"_id"`
 		Name     string             `bson:"name"`
-		Role     string             `bson:"role"`
+		Role     int8               `bson:"role"`
 		Email    string             `bson:"email"`
 		Password string             `bson:"password"`
 	}

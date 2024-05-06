@@ -26,16 +26,18 @@ func (ur UserRepository) Create(ctx context.Context, user domain.User) error {
 	collection := ur.db.Collection(ur.collection)
 
 	_, err := collection.InsertOne(ctx, user)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
 func (ur UserRepository) Fetch(ctx context.Context) ([]domain.User, error) {
 	collection := ur.db.Collection(ur.collection)
-
 	opts := options.Find().SetProjection(bson.D{{Key: "password", Value: 0}})
-	cursor, err := collection.Find(ctx, bson.D{}, opts)
 
+	cursor, err := collection.Find(ctx, bson.D{}, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -47,14 +49,20 @@ func (ur UserRepository) Fetch(ctx context.Context) ([]domain.User, error) {
 		return []domain.User{}, err
 	}
 
-	return users, err
+	return users, nil
 }
 
 func (ur UserRepository) GetByEmail(ctx context.Context, email string) (domain.User, error) {
 	collection := ur.db.Collection(ur.collection)
+
 	var user domain.User
+
 	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
-	return user, err
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
 }
 
 func (ur UserRepository) GetByID(ctx context.Context, id string) (domain.User, error) {
@@ -68,5 +76,9 @@ func (ur UserRepository) GetByID(ctx context.Context, id string) (domain.User, e
 	}
 
 	err = collection.FindOne(ctx, bson.M{"_id": idHex}).Decode(&user)
-	return user, err
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
 }

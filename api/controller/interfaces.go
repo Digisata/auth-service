@@ -8,7 +8,9 @@ import (
 
 type (
 	UserUsecase interface {
-		Login(ctx context.Context, req domain.User) (domain.Login, error)
+		LoginAdmin(ctx context.Context, req domain.User) (domain.Login, error)
+		LoginCustomer(ctx context.Context, req domain.User) (domain.Login, error)
+		LoginCommittee(ctx context.Context, req domain.User) (domain.Login, error)
 		RefreshToken(ctx context.Context, req domain.RefreshTokenRequest) (domain.Login, error)
 		CreateUser(ctx context.Context, req domain.User) error
 		GetUserByID(ctx context.Context, userID string) (domain.UserProfile, error)

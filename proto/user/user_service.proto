@@ -35,16 +35,42 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 service AuthService {
-  rpc Login (LoginRequest) returns (LoginResponse) {
+  rpc LoginAdmin (LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
-      post: "/api/v1/login",
+      post: "/api/v1/admin/login",
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
         security: {}
         tags: ["User"]
-        summary: "User login"
-        description: "This API for user login"
+        summary: "Admin login"
+        description: "This API for admin login"
+    };
+  }
+
+  rpc LoginCustomer (LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/customer/login",
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        security: {}
+        tags: ["User"]
+        summary: "Customer login"
+        description: "This API for customer login"
+    };
+  }
+
+  rpc LoginCommittee (LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/committee/login",
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        security: {}
+        tags: ["User"]
+        summary: "Committee login"
+        description: "This API for committee login"
     };
   }
 

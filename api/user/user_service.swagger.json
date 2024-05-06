@@ -16,11 +16,81 @@
     "application/json"
   ],
   "paths": {
-    "/api/v1/login": {
+    "/api/v1/admin/login": {
       "post": {
-        "summary": "User login",
-        "description": "This API for user login",
-        "operationId": "AuthService_Login",
+        "summary": "Admin login",
+        "description": "This API for admin login",
+        "operationId": "AuthService_LoginAdmin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/userLoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userLoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "User"
+        ],
+        "security": []
+      }
+    },
+    "/api/v1/committee/login": {
+      "post": {
+        "summary": "Committee login",
+        "description": "This API for committee login",
+        "operationId": "AuthService_LoginCommittee",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/userLoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userLoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "User"
+        ],
+        "security": []
+      }
+    },
+    "/api/v1/customer/login": {
+      "post": {
+        "summary": "Customer login",
+        "description": "This API for customer login",
+        "operationId": "AuthService_LoginCustomer",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -221,7 +291,8 @@
           "type": "string"
         },
         "role": {
-          "type": "string"
+          "type": "integer",
+          "format": "int32"
         },
         "email": {
           "type": "string"
