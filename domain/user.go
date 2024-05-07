@@ -9,7 +9,7 @@ type UserRole int8
 const (
 	CollectionUser string = "users"
 
-	Admin UserRole = iota + 1
+	Admin UserRole = iota
 	Customer
 	Committee
 )

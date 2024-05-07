@@ -230,7 +230,7 @@ func (uu UserUsecase) CreateUser(ctx context.Context, req domain.User) error {
 	defer cancel()
 
 	claims := ctx.Value("claims")
-	role := claims.(jwt.MapClaims)["role"].(int8)
+	role := int8(claims.(jwt.MapClaims)["role"].(float64))
 
 	if role != int8(domain.Admin) {
 		return status.Error(codes.Unauthenticated, "Only admin allowed")
