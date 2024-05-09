@@ -48,13 +48,13 @@ func main() {
 	db := app.Mongo.Database(cfg.Mongo.DBName)
 	defer app.CloseDBConnection()
 
-	userRopesitory := mongoRepo.NewUserRepository(db, domain.USER_COLLECTION)
-	profileRopesitory := mongoRepo.NewProfileRepository(db, domain.USER_COLLECTION)
+	userRepository := mongoRepo.NewUserRepository(db, domain.USER_COLLECTION)
+	profileRepository := mongoRepo.NewProfileRepository(db, domain.USER_COLLECTION)
 	cacheRepository := memcachedRepo.NewCacheRepository(app.MemcachedDB)
 	timeout := time.Duration(cfg.ContextTimeout) * time.Second
-	uc := &controller.AuthController{
-		UserUsecase:    usecase.NewUserUsecase(jwt, cfg, userRopesitory, cacheRepository, timeout),
-		ProfileUsecase: usecase.NewProfileUsecase(jwt, cfg, profileRopesitory, cacheRepository, timeout),
+	authController := &controller.AuthController{
+		UserUsecase:    usecase.NewUserUsecase(jwt, cfg, userRepository, cacheRepository, timeout),
+		ProfileUsecase: usecase.NewProfileUsecase(jwt, cfg, profileRepository, cacheRepository, timeout),
 	}
 
 	// Setup GRPC server
@@ -64,7 +64,7 @@ func main() {
 		panic(err)
 	}
 
-	authPb.RegisterAuthServiceServer(grpcServer, uc)
+	authPb.RegisterAuthServiceServer(grpcServer, authController)
 	grpc_health_v1.RegisterHealthServer(grpcServer.Server, health.NewServer())
 
 	err = grpcServer.Run()

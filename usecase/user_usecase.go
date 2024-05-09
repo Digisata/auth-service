@@ -2,11 +2,15 @@ package usecase
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/digisata/auth-service/bootstrap"
 	"github.com/digisata/auth-service/domain"
 	"github.com/digisata/auth-service/pkg/jwtio"
+	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -48,7 +52,7 @@ func (uc UserUsecase) generateToken(user domain.User) (domain.Login, error) {
 
 	err = uc.cr.Set(domain.CacheItem{
 		Key: accessToken,
-		Exp: int(now.Add(time.Hour * time.Duration(uc.cfg.Jwt.AccessTokenExpiryHour)).Unix()),
+		Exp: int32(now.Add(time.Hour * time.Duration(uc.cfg.Jwt.AccessTokenExpiryHour)).Unix()),
 	})
 	if err != nil {
 		return res, status.Error(codes.Internal, err.Error())
@@ -61,7 +65,7 @@ func (uc UserUsecase) generateToken(user domain.User) (domain.Login, error) {
 
 	err = uc.cr.Set(domain.CacheItem{
 		Key: refreshToken,
-		Exp: int(now.Add(time.Hour * time.Duration(uc.cfg.Jwt.RefreshTokenExpiryHour)).Unix()),
+		Exp: int32(now.Add(time.Hour * time.Duration(uc.cfg.Jwt.RefreshTokenExpiryHour)).Unix()),
 	})
 	if err != nil {
 		return res, status.Error(codes.Internal, err.Error())
@@ -168,6 +172,10 @@ func (uc UserUsecase) RefreshToken(ctx context.Context, req domain.RefreshTokenR
 
 	user, err := uc.ur.GetByID(ctx, claims["id"].(string))
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return res, status.Error(codes.NotFound, fmt.Sprintf("User with id %s not found", claims["id"].(string)))
+		}
+
 		return res, status.Error(codes.Internal, err.Error())
 	}
 
@@ -187,7 +195,7 @@ func (uc UserUsecase) RefreshToken(ctx context.Context, req domain.RefreshTokenR
 
 	err = uc.cr.Set(domain.CacheItem{
 		Key: newAccessToken,
-		Exp: int(now.Add(time.Hour * time.Duration(uc.cfg.Jwt.AccessTokenExpiryHour)).Unix()),
+		Exp: int32(now.Add(time.Hour * time.Duration(uc.cfg.Jwt.AccessTokenExpiryHour)).Unix()),
 	})
 	if err != nil {
 		return res, status.Error(codes.Internal, err.Error())
@@ -200,19 +208,19 @@ func (uc UserUsecase) RefreshToken(ctx context.Context, req domain.RefreshTokenR
 
 	err = uc.cr.Set(domain.CacheItem{
 		Key: newRefreshToken,
-		Exp: int(now.Add(time.Hour * time.Duration(uc.cfg.Jwt.RefreshTokenExpiryHour)).Unix()),
+		Exp: int32(now.Add(time.Hour * time.Duration(uc.cfg.Jwt.RefreshTokenExpiryHour)).Unix()),
 	})
 	if err != nil {
 		return res, status.Error(codes.Internal, err.Error())
 	}
 
 	err = uc.cr.Delete(req.AccessToken)
-	if err != nil {
+	if err != nil && !errors.Is(err, memcache.ErrCacheMiss) {
 		return res, status.Error(codes.Internal, err.Error())
 	}
 
 	err = uc.cr.Delete(req.RefreshToken)
-	if err != nil {
+	if err != nil && !errors.Is(err, memcache.ErrCacheMiss) {
 		return res, status.Error(codes.Internal, err.Error())
 	}
 
@@ -257,6 +265,10 @@ func (uc UserUsecase) GetByID(ctx context.Context, userID string) (domain.User, 
 
 	res, err := uc.ur.GetByID(ctx, userID)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return res, status.Error(codes.NotFound, fmt.Sprintf("User with id %s not found", userID))
+		}
+
 		return res, status.Error(codes.Internal, err.Error())
 	}
 
@@ -270,12 +282,12 @@ func (uc UserUsecase) Logout(ctx context.Context, refreshToken string) error {
 	accessToken, _ := uc.jwt.GetAccessToken(ctx)
 
 	err := uc.cr.Delete(accessToken)
-	if err != nil {
+	if err != nil && !errors.Is(err, memcache.ErrCacheMiss) {
 		return status.Error(codes.Internal, err.Error())
 	}
 
 	err = uc.cr.Delete(refreshToken)
-	if err != nil {
+	if err != nil && !errors.Is(err, memcache.ErrCacheMiss) {
 		return status.Error(codes.Internal, err.Error())
 	}
 

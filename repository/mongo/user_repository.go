@@ -37,7 +37,7 @@ func (r UserRepository) Create(ctx context.Context, user domain.User) error {
 	return nil
 }
 
-func (r UserRepository) Fetch(ctx context.Context) ([]domain.User, error) {
+func (r UserRepository) GetAll(ctx context.Context) ([]domain.User, error) {
 	collection := r.db.Collection(r.collection)
 	opts := options.Find().SetProjection(bson.D{{Key: "password", Value: 0}})
 

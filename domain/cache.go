@@ -4,6 +4,6 @@ type (
 	CacheItem struct {
 		Key   string
 		Value string
-		Exp   int
+		Exp   int32
 	}
 )

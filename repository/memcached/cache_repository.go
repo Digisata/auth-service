@@ -20,7 +20,7 @@ func (r CacheRepository) Set(req domain.CacheItem) error {
 	item := &memcache.Item{
 		Key:        req.Key,
 		Value:      []byte(req.Value),
-		Expiration: int32(req.Exp),
+		Expiration: req.Exp,
 	}
 
 	if err := r.memcachedDB.Set(item); err != nil {
@@ -41,7 +41,7 @@ func (r CacheRepository) Get(key string) (domain.CacheItem, error) {
 	item = domain.CacheItem{
 		Key:   it.Key,
 		Value: string(it.Value),
-		Exp:   int(it.Expiration),
+		Exp:   it.Expiration,
 	}
 
 	return item, nil
