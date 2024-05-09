@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/digisata/auth-service/domain"
 	"github.com/digisata/auth-service/pkg/mongo"
@@ -22,9 +23,12 @@ func NewUserRepository(db mongo.Database, collection string) *UserRepository {
 	}
 }
 
-func (ur UserRepository) Create(ctx context.Context, user domain.User) error {
-	collection := ur.db.Collection(ur.collection)
+func (r UserRepository) Create(ctx context.Context, user domain.User) error {
+	collection := r.db.Collection(r.collection)
 
+	now := time.Now().Local().Unix()
+	user.CreatedAt = now
+	user.UpdatedAt = now
 	_, err := collection.InsertOne(ctx, user)
 	if err != nil {
 		return err
@@ -33,8 +37,8 @@ func (ur UserRepository) Create(ctx context.Context, user domain.User) error {
 	return nil
 }
 
-func (ur UserRepository) Fetch(ctx context.Context) ([]domain.User, error) {
-	collection := ur.db.Collection(ur.collection)
+func (r UserRepository) Fetch(ctx context.Context) ([]domain.User, error) {
+	collection := r.db.Collection(r.collection)
 	opts := options.Find().SetProjection(bson.D{{Key: "password", Value: 0}})
 
 	cursor, err := collection.Find(ctx, bson.D{}, opts)
@@ -52,8 +56,8 @@ func (ur UserRepository) Fetch(ctx context.Context) ([]domain.User, error) {
 	return users, nil
 }
 
-func (ur UserRepository) GetByEmail(ctx context.Context, email string) (domain.User, error) {
-	collection := ur.db.Collection(ur.collection)
+func (r UserRepository) GetByEmail(ctx context.Context, email string) (domain.User, error) {
+	collection := r.db.Collection(r.collection)
 
 	var user domain.User
 
@@ -65,8 +69,8 @@ func (ur UserRepository) GetByEmail(ctx context.Context, email string) (domain.U
 	return user, nil
 }
 
-func (ur UserRepository) GetByID(ctx context.Context, id string) (domain.User, error) {
-	collection := ur.db.Collection(ur.collection)
+func (r UserRepository) GetByID(ctx context.Context, id string) (domain.User, error) {
+	collection := r.db.Collection(r.collection)
 
 	var user domain.User
 

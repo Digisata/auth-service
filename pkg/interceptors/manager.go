@@ -6,8 +6,11 @@ import (
 	"github.com/digisata/auth-service/pkg/constants"
 	"github.com/digisata/auth-service/pkg/jwtio"
 	"github.com/digisata/auth-service/pkg/tracing"
+	"github.com/golang-jwt/jwt/v4"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type InterceptorManager interface {
@@ -26,7 +29,13 @@ type InterceptorManager interface {
 		invoker grpc.UnaryInvoker,
 		opts ...grpc.CallOption,
 	) error
-	AuthInterceptor(
+	AuthenticationInterceptor(
+		ctx context.Context,
+		req interface{},
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (interface{}, error)
+	AuthorizationInterceptor(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
@@ -36,17 +45,19 @@ type InterceptorManager interface {
 
 // InterceptorManager struct
 type interceptorManager struct {
-	logger            *zap.SugaredLogger
-	jwtManager        *jwtio.JSONWebToken
-	restrictedMethods map[string][]string
+	logger           *zap.SugaredLogger
+	jwtManager       *jwtio.JSONWebToken
+	protectedMethods map[string]bool
+	allowedRoles     map[string][]int8
 }
 
 // NewInterceptorManager InterceptorManager constructor
 func NewInterceptorManager(jwtManager *jwtio.JSONWebToken, logger *zap.SugaredLogger) *interceptorManager {
 	return &interceptorManager{
-		logger:            logger,
-		jwtManager:        jwtManager,
-		restrictedMethods: restrictedMethods(),
+		logger:           logger,
+		jwtManager:       jwtManager,
+		protectedMethods: protectedMethods(),
+		allowedRoles:     allowedRoles(),
 	}
 }
 
@@ -107,16 +118,16 @@ func (im interceptorManager) ClientRequestLoggerInterceptor() func(
 	}
 }
 
-func (im interceptorManager) AuthInterceptor(
+func (im interceptorManager) AuthenticationInterceptor(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
-	ctx, span := tracing.StartGrpcServerTracerSpan(ctx, "Interceptors.AuthInterceptor")
+	ctx, span := tracing.StartGrpcServerTracerSpan(ctx, "Interceptors.AuthenticationInterceptor")
 	defer span.End()
 
-	if _, ok := im.isRestricted(ctx, info.FullMethod); !ok {
+	if _, isProtected := im.protectedMethods[info.FullMethod]; !isProtected {
 		return handler(ctx, req)
 	}
 
@@ -125,26 +136,64 @@ func (im interceptorManager) AuthInterceptor(
 		return nil, err
 	}
 
-	newCtx := context.WithValue(ctx, "claims", claims)
+	ctx = context.WithValue(ctx, "claims", claims)
 
-	return handler(newCtx, req)
+	return handler(ctx, req)
 }
 
-func (im interceptorManager) isRestricted(ctx context.Context, method string) ([]string, bool) {
-	_, span := tracing.StartGrpcServerTracerSpan(ctx, "Interceptors.isRestricted")
+func (im interceptorManager) AuthorizationInterceptor(
+	ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (interface{}, error) {
+	ctx, span := tracing.StartGrpcServerTracerSpan(ctx, "Interceptors.AuthorizationInterceptor")
 	defer span.End()
 
-	value, ok := im.restrictedMethods[method]
+	if _, isProtected := im.protectedMethods[info.FullMethod]; !isProtected {
+		return handler(ctx, req)
+	}
 
-	return value, ok
+	claims := ctx.Value("claims")
+	role := int8(claims.(jwt.MapClaims)["role"].(float64))
+
+	roles, isAuthorizationNeeded := im.allowedRoles[info.FullMethod]
+	if !isAuthorizationNeeded {
+		return handler(ctx, req)
+	}
+
+	isAuthorized := false
+
+	for _, val := range roles {
+		if role == val {
+			isAuthorized = true
+			break
+		}
+	}
+
+	if !isAuthorized {
+		return nil, status.Error(codes.Unauthenticated, "Not allowed to access this resource")
+	}
+
+	return handler(ctx, req)
 }
 
-func restrictedMethods() map[string][]string {
-	const path string = "/auth_service.user.AuthService/"
+func protectedMethods() map[string]bool {
+	return map[string]bool{
+		// User
+		constants.PATH + "CreateUser":  true,
+		constants.PATH + "GetUserByID": true,
+		constants.PATH + "Logout":      true,
 
-	return map[string][]string{
-		path + "CreateUser":  {constants.ACCESS_TOKEN},
-		path + "GetUserByID": {constants.ACCESS_TOKEN},
-		path + "Logout":      {constants.ACCESS_TOKEN},
+		// Profile
+		constants.PATH + "GetProfileByID": true,
+	}
+}
+
+func allowedRoles() map[string][]int8 {
+	return map[string][]int8{
+		// User
+		constants.PATH + "CreateUser":  {int8(constants.ADMIN)},
+		constants.PATH + "GetUserByID": {int8(constants.ADMIN)},
 	}
 }

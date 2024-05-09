@@ -25,7 +25,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userLoginResponse"
+              "$ref": "#/definitions/authLoginResponse"
             }
           },
           "default": {
@@ -41,7 +41,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/userLoginRequest"
+              "$ref": "#/definitions/authLoginRequest"
             }
           }
         ],
@@ -60,7 +60,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userLoginResponse"
+              "$ref": "#/definitions/authLoginResponse"
             }
           },
           "default": {
@@ -76,7 +76,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/userLoginRequest"
+              "$ref": "#/definitions/authLoginRequest"
             }
           }
         ],
@@ -95,7 +95,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userLoginResponse"
+              "$ref": "#/definitions/authLoginResponse"
             }
           },
           "default": {
@@ -111,7 +111,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/userLoginRequest"
+              "$ref": "#/definitions/authLoginRequest"
             }
           }
         ],
@@ -130,7 +130,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userBaseResponse"
+              "$ref": "#/definitions/authBaseResponse"
             }
           },
           "default": {
@@ -146,7 +146,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/userLogoutRequest"
+              "$ref": "#/definitions/authLogoutRequest"
             }
           }
         ],
@@ -159,12 +159,12 @@
       "get": {
         "summary": "Get profile",
         "description": "This API for get profile",
-        "operationId": "AuthService_GetProfile",
+        "operationId": "AuthService_GetProfileByID",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userGetProfileResponse"
+              "$ref": "#/definitions/authGetProfileByIDResponse"
             }
           },
           "default": {
@@ -188,7 +188,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userRefreshTokenResponse"
+              "$ref": "#/definitions/authRefreshTokenResponse"
             }
           },
           "default": {
@@ -204,7 +204,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/userRefreshTokenRequest"
+              "$ref": "#/definitions/authRefreshTokenRequest"
             }
           }
         ],
@@ -223,7 +223,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userGetUserByIDResponse"
+              "$ref": "#/definitions/authGetUserByIDResponse"
             }
           },
           "default": {
@@ -253,7 +253,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userBaseResponse"
+              "$ref": "#/definitions/authBaseResponse"
             }
           },
           "default": {
@@ -269,7 +269,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/userCreateUserRequest"
+              "$ref": "#/definitions/authCreateUserRequest"
             }
           }
         ],
@@ -280,6 +280,154 @@
     }
   },
   "definitions": {
+    "authBaseResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "authCreateUserRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "is_active": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "title": "User"
+    },
+    "authGetProfileByIDResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "updated_at": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "deleted_at": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "Profile"
+    },
+    "authGetUserByIDResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "role": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "is_active": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "updated_at": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "deleted_at": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "authLoginRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "authLoginResponse": {
+      "type": "object",
+      "properties": {
+        "access_token": {
+          "type": "string"
+        },
+        "refresh_token": {
+          "type": "string"
+        }
+      }
+    },
+    "authLogoutRequest": {
+      "type": "object",
+      "properties": {
+        "refresh_token": {
+          "type": "string"
+        }
+      }
+    },
+    "authRefreshTokenRequest": {
+      "type": "object",
+      "properties": {
+        "access_token": {
+          "type": "string"
+        },
+        "refresh_token": {
+          "type": "string"
+        }
+      }
+    },
+    "authRefreshTokenResponse": {
+      "type": "object",
+      "properties": {
+        "access_token": {
+          "type": "string"
+        },
+        "refresh_token": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -305,124 +453,6 @@
             "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
-        }
-      }
-    },
-    "userBaseResponse": {
-      "type": "object",
-      "properties": {
-        "message": {
-          "type": "string"
-        }
-      }
-    },
-    "userCreateUserRequest": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "role": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "email": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        },
-        "is_active": {
-          "type": "boolean"
-        },
-        "note": {
-          "type": "string"
-        }
-      },
-      "title": "User"
-    },
-    "userGetProfileResponse": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        }
-      },
-      "title": "Profile"
-    },
-    "userGetUserByIDResponse": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        },
-        "role": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "is_active": {
-          "type": "boolean"
-        },
-        "note": {
-          "type": "string"
-        }
-      }
-    },
-    "userLoginRequest": {
-      "type": "object",
-      "properties": {
-        "email": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        }
-      }
-    },
-    "userLoginResponse": {
-      "type": "object",
-      "properties": {
-        "access_token": {
-          "type": "string"
-        },
-        "refresh_token": {
-          "type": "string"
-        }
-      }
-    },
-    "userLogoutRequest": {
-      "type": "object",
-      "properties": {
-        "refresh_token": {
-          "type": "string"
-        }
-      }
-    },
-    "userRefreshTokenRequest": {
-      "type": "object",
-      "properties": {
-        "access_token": {
-          "type": "string"
-        },
-        "refresh_token": {
-          "type": "string"
-        }
-      }
-    },
-    "userRefreshTokenResponse": {
-      "type": "object",
-      "properties": {
-        "access_token": {
-          "type": "string"
-        },
-        "refresh_token": {
-          "type": "string"
         }
       }
     }

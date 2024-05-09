@@ -7,7 +7,6 @@ import (
 	"github.com/digisata/auth-service/bootstrap"
 	"github.com/digisata/auth-service/domain"
 	"github.com/digisata/auth-service/pkg/jwtio"
-	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -31,7 +30,7 @@ func NewUserUsecase(jwt *jwtio.JSONWebToken, cfg *bootstrap.Config, ur UserRepos
 	}
 }
 
-func (uu UserUsecase) generateToken(user domain.User) (domain.Login, error) {
+func (uc UserUsecase) generateToken(user domain.User) (domain.Login, error) {
 	var res domain.Login
 	payload := jwtio.Payload{
 		ID:    user.ID.Hex(),
@@ -42,27 +41,27 @@ func (uu UserUsecase) generateToken(user domain.User) (domain.Login, error) {
 
 	now := time.Now()
 
-	accessToken, err := uu.jwt.CreateAccessToken(payload, uu.cfg.Jwt.AccessTokenSecret, now, uu.cfg.Jwt.AccessTokenExpiryHour)
+	accessToken, err := uc.jwt.CreateAccessToken(payload, uc.cfg.Jwt.AccessTokenSecret, now, uc.cfg.Jwt.AccessTokenExpiryHour)
 	if err != nil {
 		return res, err
 	}
 
-	err = uu.cr.Set(domain.CacheItem{
+	err = uc.cr.Set(domain.CacheItem{
 		Key: accessToken,
-		Exp: int(now.Add(time.Hour * time.Duration(uu.cfg.Jwt.AccessTokenExpiryHour)).Unix()),
+		Exp: int(now.Add(time.Hour * time.Duration(uc.cfg.Jwt.AccessTokenExpiryHour)).Unix()),
 	})
 	if err != nil {
 		return res, status.Error(codes.Internal, err.Error())
 	}
 
-	refreshToken, err := uu.jwt.CreateRefreshToken(payload, uu.cfg.Jwt.RefreshTokenSecret, now, uu.cfg.Jwt.RefreshTokenExpiryHour)
+	refreshToken, err := uc.jwt.CreateRefreshToken(payload, uc.cfg.Jwt.RefreshTokenSecret, now, uc.cfg.Jwt.RefreshTokenExpiryHour)
 	if err != nil {
 		return res, err
 	}
 
-	err = uu.cr.Set(domain.CacheItem{
+	err = uc.cr.Set(domain.CacheItem{
 		Key: refreshToken,
-		Exp: int(now.Add(time.Hour * time.Duration(uu.cfg.Jwt.RefreshTokenExpiryHour)).Unix()),
+		Exp: int(now.Add(time.Hour * time.Duration(uc.cfg.Jwt.RefreshTokenExpiryHour)).Unix()),
 	})
 	if err != nil {
 		return res, status.Error(codes.Internal, err.Error())
@@ -76,17 +75,17 @@ func (uu UserUsecase) generateToken(user domain.User) (domain.Login, error) {
 	return res, nil
 }
 
-func (uu UserUsecase) LoginAdmin(ctx context.Context, req domain.User) (domain.Login, error) {
+func (uc UserUsecase) LoginAdmin(ctx context.Context, req domain.User) (domain.Login, error) {
 	var res domain.Login
-	ctx, cancel := context.WithTimeout(ctx, uu.timeout)
+	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
-	user, err := uu.ur.GetByEmail(ctx, req.Email)
+	user, err := uc.ur.GetByEmail(ctx, req.Email)
 	if err != nil {
 		return res, status.Error(codes.InvalidArgument, "Incorrect email or password")
 	}
 
-	if user.Role != int8(domain.Admin) {
+	if user.Role != int8(domain.ADMIN) {
 		return res, status.Error(codes.InvalidArgument, "Incorrect email or password")
 	}
 
@@ -95,7 +94,7 @@ func (uu UserUsecase) LoginAdmin(ctx context.Context, req domain.User) (domain.L
 		return res, status.Error(codes.InvalidArgument, "Incorrect email or password")
 	}
 
-	res, err = uu.generateToken(user)
+	res, err = uc.generateToken(user)
 	if err != nil {
 		return res, err
 	}
@@ -103,17 +102,17 @@ func (uu UserUsecase) LoginAdmin(ctx context.Context, req domain.User) (domain.L
 	return res, nil
 }
 
-func (uu UserUsecase) LoginCustomer(ctx context.Context, req domain.User) (domain.Login, error) {
+func (uc UserUsecase) LoginCustomer(ctx context.Context, req domain.User) (domain.Login, error) {
 	var res domain.Login
-	ctx, cancel := context.WithTimeout(ctx, uu.timeout)
+	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
-	user, err := uu.ur.GetByEmail(ctx, req.Email)
+	user, err := uc.ur.GetByEmail(ctx, req.Email)
 	if err != nil {
 		return res, status.Error(codes.InvalidArgument, "Incorrect email or password")
 	}
 
-	if user.Role != int8(domain.Customer) {
+	if user.Role != int8(domain.CUSTOMER) {
 		return res, status.Error(codes.InvalidArgument, "Incorrect email or password")
 	}
 
@@ -122,7 +121,7 @@ func (uu UserUsecase) LoginCustomer(ctx context.Context, req domain.User) (domai
 		return res, status.Error(codes.InvalidArgument, "Incorrect email or password")
 	}
 
-	res, err = uu.generateToken(user)
+	res, err = uc.generateToken(user)
 	if err != nil {
 		return res, err
 	}
@@ -130,17 +129,17 @@ func (uu UserUsecase) LoginCustomer(ctx context.Context, req domain.User) (domai
 	return res, nil
 }
 
-func (uu UserUsecase) LoginCommittee(ctx context.Context, req domain.User) (domain.Login, error) {
+func (uc UserUsecase) LoginCommittee(ctx context.Context, req domain.User) (domain.Login, error) {
 	var res domain.Login
-	ctx, cancel := context.WithTimeout(ctx, uu.timeout)
+	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
-	user, err := uu.ur.GetByEmail(ctx, req.Email)
+	user, err := uc.ur.GetByEmail(ctx, req.Email)
 	if err != nil {
 		return res, status.Error(codes.InvalidArgument, "Incorrect email or password")
 	}
 
-	if user.Role != int8(domain.Committee) {
+	if user.Role != int8(domain.COMMITTEE) {
 		return res, status.Error(codes.InvalidArgument, "Incorrect email or password")
 	}
 
@@ -149,7 +148,7 @@ func (uu UserUsecase) LoginCommittee(ctx context.Context, req domain.User) (doma
 		return res, status.Error(codes.InvalidArgument, "Incorrect email or password")
 	}
 
-	res, err = uu.generateToken(user)
+	res, err = uc.generateToken(user)
 	if err != nil {
 		return res, err
 	}
@@ -157,17 +156,17 @@ func (uu UserUsecase) LoginCommittee(ctx context.Context, req domain.User) (doma
 	return res, nil
 }
 
-func (uu UserUsecase) RefreshToken(ctx context.Context, req domain.RefreshTokenRequest) (domain.Login, error) {
+func (uc UserUsecase) RefreshToken(ctx context.Context, req domain.RefreshTokenRequest) (domain.Login, error) {
 	var res domain.Login
-	ctx, cancel := context.WithTimeout(ctx, uu.timeout)
+	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
-	claims, err := uu.jwt.VerifyRefreshToken(req.RefreshToken, uu.cfg.Jwt.RefreshTokenSecret)
+	claims, err := uc.jwt.VerifyRefreshToken(req.RefreshToken, uc.cfg.Jwt.RefreshTokenSecret)
 	if err != nil {
 		return res, err
 	}
 
-	user, err := uu.ur.GetByID(ctx, claims["id"].(string))
+	user, err := uc.ur.GetByID(ctx, claims["id"].(string))
 	if err != nil {
 		return res, status.Error(codes.Internal, err.Error())
 	}
@@ -181,38 +180,38 @@ func (uu UserUsecase) RefreshToken(ctx context.Context, req domain.RefreshTokenR
 
 	now := time.Now()
 
-	newAccessToken, err := uu.jwt.CreateAccessToken(payload, uu.cfg.Jwt.AccessTokenSecret, now, uu.cfg.Jwt.AccessTokenExpiryHour)
+	newAccessToken, err := uc.jwt.CreateAccessToken(payload, uc.cfg.Jwt.AccessTokenSecret, now, uc.cfg.Jwt.AccessTokenExpiryHour)
 	if err != nil {
 		return res, err
 	}
 
-	err = uu.cr.Set(domain.CacheItem{
+	err = uc.cr.Set(domain.CacheItem{
 		Key: newAccessToken,
-		Exp: int(now.Add(time.Hour * time.Duration(uu.cfg.Jwt.AccessTokenExpiryHour)).Unix()),
+		Exp: int(now.Add(time.Hour * time.Duration(uc.cfg.Jwt.AccessTokenExpiryHour)).Unix()),
 	})
 	if err != nil {
 		return res, status.Error(codes.Internal, err.Error())
 	}
 
-	newRefreshToken, err := uu.jwt.CreateRefreshToken(payload, uu.cfg.Jwt.RefreshTokenSecret, now, uu.cfg.Jwt.RefreshTokenExpiryHour)
+	newRefreshToken, err := uc.jwt.CreateRefreshToken(payload, uc.cfg.Jwt.RefreshTokenSecret, now, uc.cfg.Jwt.RefreshTokenExpiryHour)
 	if err != nil {
 		return res, err
 	}
 
-	err = uu.cr.Set(domain.CacheItem{
+	err = uc.cr.Set(domain.CacheItem{
 		Key: newRefreshToken,
-		Exp: int(now.Add(time.Hour * time.Duration(uu.cfg.Jwt.RefreshTokenExpiryHour)).Unix()),
+		Exp: int(now.Add(time.Hour * time.Duration(uc.cfg.Jwt.RefreshTokenExpiryHour)).Unix()),
 	})
 	if err != nil {
 		return res, status.Error(codes.Internal, err.Error())
 	}
 
-	err = uu.cr.Delete(req.AccessToken)
+	err = uc.cr.Delete(req.AccessToken)
 	if err != nil {
 		return res, status.Error(codes.Internal, err.Error())
 	}
 
-	err = uu.cr.Delete(req.RefreshToken)
+	err = uc.cr.Delete(req.RefreshToken)
 	if err != nil {
 		return res, status.Error(codes.Internal, err.Error())
 	}
@@ -225,18 +224,11 @@ func (uu UserUsecase) RefreshToken(ctx context.Context, req domain.RefreshTokenR
 	return res, nil
 }
 
-func (uu UserUsecase) CreateUser(ctx context.Context, req domain.User) error {
-	ctx, cancel := context.WithTimeout(ctx, uu.timeout)
+func (uc UserUsecase) Create(ctx context.Context, req domain.User) error {
+	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
-	claims := ctx.Value("claims")
-	role := int8(claims.(jwt.MapClaims)["role"].(float64))
-
-	if role != int8(domain.Admin) {
-		return status.Error(codes.Unauthenticated, "Only admin allowed")
-	}
-
-	_, err := uu.ur.GetByEmail(ctx, req.Email)
+	_, err := uc.ur.GetByEmail(ctx, req.Email)
 	if err == nil {
 		return status.Error(codes.InvalidArgument, "User already exists with the given email")
 	}
@@ -250,7 +242,7 @@ func (uu UserUsecase) CreateUser(ctx context.Context, req domain.User) error {
 	}
 
 	req.Password = string(encryptedPassword)
-	err = uu.ur.Create(ctx, req)
+	err = uc.ur.Create(ctx, req)
 	if err != nil {
 		return status.Error(codes.Internal, err.Error())
 	}
@@ -258,33 +250,31 @@ func (uu UserUsecase) CreateUser(ctx context.Context, req domain.User) error {
 	return nil
 }
 
-func (uu UserUsecase) GetUserByID(ctx context.Context, userID string) (domain.UserProfile, error) {
-	var res domain.UserProfile
-	ctx, cancel := context.WithTimeout(ctx, uu.timeout)
+func (uc UserUsecase) GetByID(ctx context.Context, userID string) (domain.User, error) {
+	var res domain.User
+	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
-	user, err := uu.ur.GetByID(ctx, userID)
+	res, err := uc.ur.GetByID(ctx, userID)
 	if err != nil {
 		return res, status.Error(codes.Internal, err.Error())
-	}
-
-	res = domain.UserProfile{
-		Name:  user.Name,
-		Email: user.Email,
 	}
 
 	return res, nil
 }
 
-func (uu UserUsecase) Logout(ctx context.Context, refreshToken string) error {
-	accessToken, _ := uu.jwt.GetAccessToken(ctx)
+func (uc UserUsecase) Logout(ctx context.Context, refreshToken string) error {
+	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
+	defer cancel()
 
-	err := uu.cr.Delete(accessToken)
+	accessToken, _ := uc.jwt.GetAccessToken(ctx)
+
+	err := uc.cr.Delete(accessToken)
 	if err != nil {
 		return status.Error(codes.Internal, err.Error())
 	}
 
-	err = uu.cr.Delete(refreshToken)
+	err = uc.cr.Delete(refreshToken)
 	if err != nil {
 		return status.Error(codes.Internal, err.Error())
 	}

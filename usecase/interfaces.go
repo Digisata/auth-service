@@ -14,6 +14,10 @@ type (
 		GetByID(ctx context.Context, id string) (domain.User, error)
 	}
 
+	ProfileRepository interface {
+		GetByID(ctx context.Context, id string) (domain.Profile, error)
+	}
+
 	CacheRepository interface {
 		Set(req domain.CacheItem) error
 		Get(key string) (domain.CacheItem, error)

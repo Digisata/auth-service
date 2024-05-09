@@ -1,13 +1,13 @@
 syntax = "proto3";
 
-package auth_service.user;
+package auth_service.auth;
 
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
-import "user/payload_messages.proto";
+import "auth/payload_messages.proto";
 import "google/protobuf/empty.proto";
 
-option go_package = "github.com/digisata/auth-service/proto/user;userPb";
+option go_package = "github.com/digisata/auth-service/proto/auth;authPb";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   security_definitions: {
@@ -35,6 +35,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 service AuthService {
+  // User
   rpc LoginAdmin (LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
       post: "/api/v1/admin/login",
@@ -99,7 +100,7 @@ service AuthService {
     };
   }
 
-  rpc GetUserByID (google.protobuf.Empty) returns (GetUserByIDResponse) {
+  rpc GetUserByID (GetUserByIDRequest) returns (GetUserByIDResponse) {
     option (google.api.http) = {
       get: "/api/v1/users",
     };
@@ -119,6 +120,18 @@ service AuthService {
         tags: ["User"]
         summary: "User logout"
         description: "This API for user logout"
+    };
+  }
+
+  // Profile
+  rpc GetProfileByID (google.protobuf.Empty) returns (GetProfileByIDResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/profile",
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags: ["Profile"]
+        summary: "Get profile"
+        description: "This API for get profile"
     };
   }
 }

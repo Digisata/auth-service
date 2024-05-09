@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: user/user_service.proto
+// source: auth/auth_service.proto
 
-package userPb
+package authPb
 
 import (
 	context "context"
@@ -20,26 +20,30 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AuthService_LoginAdmin_FullMethodName     = "/auth_service.user.AuthService/LoginAdmin"
-	AuthService_LoginCustomer_FullMethodName  = "/auth_service.user.AuthService/LoginCustomer"
-	AuthService_LoginCommittee_FullMethodName = "/auth_service.user.AuthService/LoginCommittee"
-	AuthService_RefreshToken_FullMethodName   = "/auth_service.user.AuthService/RefreshToken"
-	AuthService_CreateUser_FullMethodName     = "/auth_service.user.AuthService/CreateUser"
-	AuthService_GetUserByID_FullMethodName    = "/auth_service.user.AuthService/GetUserByID"
-	AuthService_Logout_FullMethodName         = "/auth_service.user.AuthService/Logout"
+	AuthService_LoginAdmin_FullMethodName     = "/auth_service.auth.AuthService/LoginAdmin"
+	AuthService_LoginCustomer_FullMethodName  = "/auth_service.auth.AuthService/LoginCustomer"
+	AuthService_LoginCommittee_FullMethodName = "/auth_service.auth.AuthService/LoginCommittee"
+	AuthService_RefreshToken_FullMethodName   = "/auth_service.auth.AuthService/RefreshToken"
+	AuthService_CreateUser_FullMethodName     = "/auth_service.auth.AuthService/CreateUser"
+	AuthService_GetUserByID_FullMethodName    = "/auth_service.auth.AuthService/GetUserByID"
+	AuthService_Logout_FullMethodName         = "/auth_service.auth.AuthService/Logout"
+	AuthService_GetProfileByID_FullMethodName = "/auth_service.auth.AuthService/GetProfileByID"
 )
 
 // AuthServiceClient is the client API for AuthService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthServiceClient interface {
+	// User
 	LoginAdmin(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	LoginCustomer(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	LoginCommittee(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*BaseResponse, error)
-	GetUserByID(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetUserByIDResponse, error)
+	GetUserByID(ctx context.Context, in *GetUserByIDRequest, opts ...grpc.CallOption) (*GetUserByIDResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*BaseResponse, error)
+	// Profile
+	GetProfileByID(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProfileByIDResponse, error)
 }
 
 type authServiceClient struct {
@@ -95,7 +99,7 @@ func (c *authServiceClient) CreateUser(ctx context.Context, in *CreateUserReques
 	return out, nil
 }
 
-func (c *authServiceClient) GetUserByID(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetUserByIDResponse, error) {
+func (c *authServiceClient) GetUserByID(ctx context.Context, in *GetUserByIDRequest, opts ...grpc.CallOption) (*GetUserByIDResponse, error) {
 	out := new(GetUserByIDResponse)
 	err := c.cc.Invoke(ctx, AuthService_GetUserByID_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -113,17 +117,29 @@ func (c *authServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts 
 	return out, nil
 }
 
+func (c *authServiceClient) GetProfileByID(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProfileByIDResponse, error) {
+	out := new(GetProfileByIDResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetProfileByID_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
 type AuthServiceServer interface {
+	// User
 	LoginAdmin(context.Context, *LoginRequest) (*LoginResponse, error)
 	LoginCustomer(context.Context, *LoginRequest) (*LoginResponse, error)
 	LoginCommittee(context.Context, *LoginRequest) (*LoginResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*BaseResponse, error)
-	GetUserByID(context.Context, *emptypb.Empty) (*GetUserByIDResponse, error)
+	GetUserByID(context.Context, *GetUserByIDRequest) (*GetUserByIDResponse, error)
 	Logout(context.Context, *LogoutRequest) (*BaseResponse, error)
+	// Profile
+	GetProfileByID(context.Context, *emptypb.Empty) (*GetProfileByIDResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -146,11 +162,14 @@ func (UnimplementedAuthServiceServer) RefreshToken(context.Context, *RefreshToke
 func (UnimplementedAuthServiceServer) CreateUser(context.Context, *CreateUserRequest) (*BaseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
-func (UnimplementedAuthServiceServer) GetUserByID(context.Context, *emptypb.Empty) (*GetUserByIDResponse, error) {
+func (UnimplementedAuthServiceServer) GetUserByID(context.Context, *GetUserByIDRequest) (*GetUserByIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserByID not implemented")
 }
 func (UnimplementedAuthServiceServer) Logout(context.Context, *LogoutRequest) (*BaseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
+}
+func (UnimplementedAuthServiceServer) GetProfileByID(context.Context, *emptypb.Empty) (*GetProfileByIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProfileByID not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
@@ -256,7 +275,7 @@ func _AuthService_CreateUser_Handler(srv interface{}, ctx context.Context, dec f
 }
 
 func _AuthService_GetUserByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(GetUserByIDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -268,7 +287,7 @@ func _AuthService_GetUserByID_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: AuthService_GetUserByID_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).GetUserByID(ctx, req.(*emptypb.Empty))
+		return srv.(AuthServiceServer).GetUserByID(ctx, req.(*GetUserByIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -291,11 +310,29 @@ func _AuthService_Logout_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_GetProfileByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetProfileByID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetProfileByID_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetProfileByID(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AuthService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "auth_service.user.AuthService",
+	ServiceName: "auth_service.auth.AuthService",
 	HandlerType: (*AuthServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -326,7 +363,11 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Logout",
 			Handler:    _AuthService_Logout_Handler,
 		},
+		{
+			MethodName: "GetProfileByID",
+			Handler:    _AuthService_GetProfileByID_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "user/user_service.proto",
+	Metadata: "auth/auth_service.proto",
 }

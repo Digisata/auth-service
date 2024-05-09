@@ -17,7 +17,7 @@ import (
 	"github.com/digisata/auth-service/pkg/jwtio"
 	memcachedRepo "github.com/digisata/auth-service/repository/memcached"
 	mongoRepo "github.com/digisata/auth-service/repository/mongo"
-	userPb "github.com/digisata/auth-service/stubs/user"
+	authPb "github.com/digisata/auth-service/stubs/auth"
 	"github.com/digisata/auth-service/usecase"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -48,11 +48,13 @@ func main() {
 	db := app.Mongo.Database(cfg.Mongo.DBName)
 	defer app.CloseDBConnection()
 
-	ur := mongoRepo.NewUserRepository(db, domain.CollectionUser)
-	cr := memcachedRepo.NewCacheRepository(app.MemcachedDB)
+	userRopesitory := mongoRepo.NewUserRepository(db, domain.USER_COLLECTION)
+	profileRopesitory := mongoRepo.NewProfileRepository(db, domain.USER_COLLECTION)
+	cacheRepository := memcachedRepo.NewCacheRepository(app.MemcachedDB)
 	timeout := time.Duration(cfg.ContextTimeout) * time.Second
-	uc := &controller.UserController{
-		UserUsecase: usecase.NewUserUsecase(jwt, cfg, ur, cr, timeout),
+	uc := &controller.AuthController{
+		UserUsecase:    usecase.NewUserUsecase(jwt, cfg, userRopesitory, cacheRepository, timeout),
+		ProfileUsecase: usecase.NewProfileUsecase(jwt, cfg, profileRopesitory, cacheRepository, timeout),
 	}
 
 	// Setup GRPC server
@@ -62,7 +64,7 @@ func main() {
 		panic(err)
 	}
 
-	userPb.RegisterAuthServiceServer(grpcServer, uc)
+	authPb.RegisterAuthServiceServer(grpcServer, uc)
 	grpc_health_v1.RegisterHealthServer(grpcServer.Server, health.NewServer())
 
 	err = grpcServer.Run()
@@ -80,7 +82,7 @@ func main() {
 
 	// Setup gateway mux
 	gatewayServer := gateway.NewGateway(cfg.Port)
-	err = userPb.RegisterAuthServiceHandler(ctx, gatewayServer.ServeMux, grpcClientConn)
+	err = authPb.RegisterAuthServiceHandler(ctx, gatewayServer.ServeMux, grpcClientConn)
 	if err != nil {
 		panic(err)
 	}

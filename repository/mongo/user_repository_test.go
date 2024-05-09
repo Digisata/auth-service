@@ -21,7 +21,7 @@ func TestCreate(t *testing.T) {
 	databaseHelper = &mocks.Database{}
 	collectionHelper = &mocks.Collection{}
 
-	collectionName := domain.CollectionUser
+	collectionName := domain.USER_COLLECTION
 
 	mockUser := &domain.User{
 		ID:       primitive.NewObjectID(),

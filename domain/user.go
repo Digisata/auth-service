@@ -7,25 +7,34 @@ import (
 type UserRole int8
 
 const (
-	CollectionUser string = "users"
+	ADMIN UserRole = iota + 1
+	CUSTOMER
+	COMMITTEE
 
-	Admin UserRole = iota
-	Customer
-	Committee
+	USER_COLLECTION string = "users"
 )
 
 type (
 	User struct {
-		ID       primitive.ObjectID `bson:"_id"`
-		Name     string             `bson:"name"`
-		Role     int8               `bson:"role"`
-		Email    string             `bson:"email"`
-		Password string             `bson:"password"`
+		ID        primitive.ObjectID `bson:"_id"`
+		Name      string             `bson:"name"`
+		Role      int8               `bson:"role"`
+		Email     string             `bson:"email"`
+		Password  string             `bson:"password"`
+		IsActive  bool               `bson:"is_active"`
+		Note      string             `bson:"note"`
+		CreatedAt int64              `bson:"created_at"`
+		UpdatedAt int64              `bson:"updated_at"`
+		DeletedAt int64              `bson:"deleted_at"`
 	}
 
-	UserProfile struct {
-		Name  string
-		Email string
+	Profile struct {
+		ID        primitive.ObjectID `bson:"_id"`
+		Name      string             `bson:"name"`
+		Email     string             `bson:"email"`
+		CreatedAt int64              `bson:"created_at"`
+		UpdatedAt int64              `bson:"updated_at"`
+		DeletedAt int64              `bson:"deleted_at"`
 	}
 
 	Login struct {

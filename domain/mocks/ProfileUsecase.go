@@ -15,15 +15,15 @@ type ProfileUsecase struct {
 }
 
 // GetProfileByID provides a mock function with given fields: c, userID
-func (_m *ProfileUsecase) GetProfileByID(c context.Context, userID string) (*domain.UserProfile, error) {
+func (_m *ProfileUsecase) GetProfileByID(c context.Context, userID string) (*domain.Profile, error) {
 	ret := _m.Called(c, userID)
 
-	var r0 *domain.UserProfile
-	if rf, ok := ret.Get(0).(func(context.Context, string) *domain.UserProfile); ok {
+	var r0 *domain.Profile
+	if rf, ok := ret.Get(0).(func(context.Context, string) *domain.Profile); ok {
 		r0 = rf(c, userID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.UserProfile)
+			r0 = ret.Get(0).(*domain.Profile)
 		}
 	}
 

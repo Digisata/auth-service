@@ -16,24 +16,24 @@ func NewCacheRepository(memcachedDB *memcached.Database) *CacheRepository {
 	}
 }
 
-func (cr CacheRepository) Set(req domain.CacheItem) error {
+func (r CacheRepository) Set(req domain.CacheItem) error {
 	item := &memcache.Item{
 		Key:        req.Key,
 		Value:      []byte(req.Value),
 		Expiration: int32(req.Exp),
 	}
 
-	if err := cr.memcachedDB.Set(item); err != nil {
+	if err := r.memcachedDB.Set(item); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (cr CacheRepository) Get(key string) (domain.CacheItem, error) {
+func (r CacheRepository) Get(key string) (domain.CacheItem, error) {
 	var item domain.CacheItem
 
-	it, err := cr.memcachedDB.Get(key)
+	it, err := r.memcachedDB.Get(key)
 	if err != nil {
 		return item, err
 	}
@@ -47,8 +47,8 @@ func (cr CacheRepository) Get(key string) (domain.CacheItem, error) {
 	return item, nil
 }
 
-func (cr CacheRepository) Delete(key string) error {
-	err := cr.memcachedDB.Delete(key)
+func (r CacheRepository) Delete(key string) error {
+	err := r.memcachedDB.Delete(key)
 	if err != nil {
 		return err
 	}
