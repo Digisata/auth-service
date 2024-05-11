@@ -39,12 +39,12 @@ func NewProfileUsecase(jwt *jwtio.JSONWebToken, cfg *bootstrap.Config, ur Profil
 	}
 }
 
-func (uu ProfileUsecase) GetByID(ctx context.Context, profileID string) (domain.Profile, error) {
+func (uc ProfileUsecase) GetByID(ctx context.Context, profileID string) (domain.Profile, error) {
 	var res domain.Profile
-	ctx, cancel := context.WithTimeout(ctx, uu.timeout)
+	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
-	res, err := uu.ur.GetByID(ctx, profileID)
+	res, err := uc.ur.GetByID(ctx, profileID)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return res, status.Error(codes.NotFound, fmt.Sprintf("User with id %s not found", profileID))
@@ -56,14 +56,14 @@ func (uu ProfileUsecase) GetByID(ctx context.Context, profileID string) (domain.
 	return res, nil
 }
 
-func (uu ProfileUsecase) ChangePassword(ctx context.Context, req domain.ChangePasswordRequest) error {
-	ctx, cancel := context.WithTimeout(ctx, uu.timeout)
+func (uc ProfileUsecase) ChangePassword(ctx context.Context, req domain.ChangePasswordRequest) error {
+	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
 	claims := ctx.Value("claims")
 	profileID := claims.(jwt.MapClaims)["id"].(string)
 
-	user, err := uu.ur.GetByID(ctx, profileID)
+	user, err := uc.ur.GetByID(ctx, profileID)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return status.Error(codes.NotFound, fmt.Sprintf("User with id %s not found", profileID))
@@ -85,7 +85,7 @@ func (uu ProfileUsecase) ChangePassword(ctx context.Context, req domain.ChangePa
 		return status.Error(codes.Internal, err.Error())
 	}
 
-	err = uu.ur.ChangePassword(ctx, profileID, string(encryptedPassword))
+	err = uc.ur.ChangePassword(ctx, profileID, string(encryptedPassword))
 	if err != nil {
 		return status.Error(codes.Internal, err.Error())
 	}

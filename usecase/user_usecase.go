@@ -103,6 +103,10 @@ func (uc UserUsecase) LoginAdmin(ctx context.Context, req domain.User) (domain.A
 		return res, status.Error(codes.InvalidArgument, "Incorrect email or password")
 	}
 
+	if !user.IsActive || user.DeletedAt != 0 {
+		return res, status.Error(codes.Unauthenticated, "Your account has been deleted")
+	}
+
 	res, err = uc.generateToken(user)
 	if err != nil {
 		return res, err
@@ -130,6 +134,10 @@ func (uc UserUsecase) LoginCustomer(ctx context.Context, req domain.User) (domai
 		return res, status.Error(codes.InvalidArgument, "Incorrect email or password")
 	}
 
+	if !user.IsActive || user.DeletedAt != 0 {
+		return res, status.Error(codes.Unauthenticated, "Your account has been deleted")
+	}
+
 	res, err = uc.generateToken(user)
 	if err != nil {
 		return res, err
@@ -155,6 +163,10 @@ func (uc UserUsecase) LoginCommittee(ctx context.Context, req domain.User) (doma
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
 		return res, status.Error(codes.InvalidArgument, "Incorrect email or password")
+	}
+
+	if !user.IsActive || user.DeletedAt != 0 {
+		return res, status.Error(codes.Unauthenticated, "Your account has been deleted")
 	}
 
 	res, err = uc.generateToken(user)
@@ -293,6 +305,52 @@ func (uc UserUsecase) Logout(ctx context.Context, refreshToken string) error {
 
 	err = uc.cr.Delete(refreshToken)
 	if err != nil && !errors.Is(err, memcache.ErrCacheMiss) {
+		return status.Error(codes.Internal, err.Error())
+	}
+
+	return nil
+}
+
+func (uc UserUsecase) Update(ctx context.Context, req domain.UpdateUser) error {
+	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
+	defer cancel()
+
+	userID := req.ID.Hex()
+
+	_, err := uc.ur.GetByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return status.Error(codes.NotFound, fmt.Sprintf("User with id %s not found", userID))
+		}
+
+		return status.Error(codes.Internal, err.Error())
+	}
+
+	err = uc.ur.Update(ctx, req)
+	if err != nil {
+		return status.Error(codes.Internal, err.Error())
+	}
+
+	return nil
+}
+
+func (uc UserUsecase) Delete(ctx context.Context, req domain.DeleteUser) error {
+	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
+	defer cancel()
+
+	userID := req.ID.Hex()
+
+	_, err := uc.ur.GetByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return status.Error(codes.NotFound, fmt.Sprintf("User with id %s not found", userID))
+		}
+
+		return status.Error(codes.Internal, err.Error())
+	}
+
+	err = uc.ur.Delete(ctx, req)
+	if err != nil {
 		return status.Error(codes.Internal, err.Error())
 	}
 

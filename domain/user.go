@@ -38,4 +38,20 @@ type (
 		AccessToken  string
 		RefreshToken string
 	}
+
+	UpdateUser struct {
+		ID        primitive.ObjectID `bson:"_id"`
+		Name      string             `bson:"name,omitempty"`
+		IsActive  bool               `bson:"is_active"`
+		Note      string             `bson:"note,omitempty"`
+		UpdatedAt int64              `bson:"updated_at,omitempty"`
+		DeletedAt int64              `bson:"deleted_at,omitempty"`
+	}
+
+	DeleteUser struct {
+		ID        primitive.ObjectID `bson:"_id"`
+		IsActive  bool               `bson:"is_active"`
+		UpdatedAt int64              `bson:"updated_at,omitempty"`
+		DeletedAt int64              `bson:"deleted_at,omitempty"`
+	}
 )

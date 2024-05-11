@@ -12,6 +12,8 @@ type (
 		GetAll(ctx context.Context) ([]domain.User, error)
 		GetByEmail(ctx context.Context, email string) (domain.User, error)
 		GetByID(ctx context.Context, id string) (domain.User, error)
+		Update(ctx context.Context, req domain.UpdateUser) error
+		Delete(ctx context.Context, req domain.DeleteUser) error
 	}
 
 	ProfileRepository interface {

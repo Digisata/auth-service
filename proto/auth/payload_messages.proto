@@ -54,8 +54,21 @@ message GetUserByIDResponse {
     int32 deleted_at = 9 [json_name = "deleted_at"];
 }
 
+message UpdateUserRequest {
+    string id = 1 [json_name = "id"];
+    string name = 2 [json_name = "name"];
+    bool is_active = 3 [json_name = "is_active"];
+    string note = 4 [json_name = "note"];
+    int32 updated_at = 5 [json_name = "updated_at"];
+    int32 deleted_at = 6 [json_name = "deleted_at"];
+}
+
 message LogoutRequest {
     string refresh_token = 1 [json_name = "refresh_token"];
+}
+
+message DeleteUserRequest {
+    string id = 1 [json_name = "id"];
 }
 
 // Profile

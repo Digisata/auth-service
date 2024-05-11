@@ -87,3 +87,34 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (domain.User, er
 
 	return user, nil
 }
+
+func (r UserRepository) Update(ctx context.Context, req domain.UpdateUser) error {
+	collection := r.db.Collection(r.collection)
+
+	updateUser := req
+	updateUser.UpdatedAt = time.Now().Local().Unix()
+
+	_, err := collection.UpdateOne(ctx, bson.M{"_id": req.ID}, bson.M{"$set": updateUser})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r UserRepository) Delete(ctx context.Context, req domain.DeleteUser) error {
+	collection := r.db.Collection(r.collection)
+
+	deleteUser := req
+	now := time.Now().Local().Unix()
+	deleteUser.IsActive = false
+	deleteUser.UpdatedAt = now
+	deleteUser.DeletedAt = now
+
+	_, err := collection.UpdateOne(ctx, bson.M{"_id": req.ID}, bson.M{"$set": deleteUser})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

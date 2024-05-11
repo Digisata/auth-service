@@ -36,6 +36,18 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 
 service AuthService {
   // User
+  rpc CreateUser (CreateUserRequest) returns (BaseResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users",
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags: ["User"]
+        summary: "Create user"
+        description: "This API for create user"
+    };
+  }
+
   rpc LoginAdmin (LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
       post: "/api/v1/admin/login",
@@ -88,21 +100,9 @@ service AuthService {
     };
   }
 
-  rpc CreateUser (CreateUserRequest) returns (BaseResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/users",
-      body: "*"
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        tags: ["User"]
-        summary: "Create user"
-        description: "This API for create user"
-    };
-  }
-
   rpc GetUserByID (GetUserByIDRequest) returns (GetUserByIDResponse) {
     option (google.api.http) = {
-      get: "/api/v1/users",
+      get: "/api/v1/users/{id}",
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
         tags: ["User"]
@@ -120,6 +120,29 @@ service AuthService {
         tags: ["User"]
         summary: "User logout"
         description: "This API for user logout"
+    };
+  }
+
+  rpc UpdateUser (UpdateUserRequest) returns (BaseResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/users/{id}",
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags: ["User"]
+        summary: "Update user by id"
+        description: "This API for update user by id"
+    };
+  }
+
+  rpc DeleteUser (DeleteUserRequest) returns (BaseResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/users/{id}",
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags: ["User"]
+        summary: "Delete user by id"
+        description: "This API for delete user by id"
     };
   }
 

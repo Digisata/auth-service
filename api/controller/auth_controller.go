@@ -8,6 +8,8 @@ import (
 	"github.com/digisata/auth-service/usecase"
 	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -134,6 +136,53 @@ func (c AuthController) GetUserByID(ctx context.Context, req *authPb.GetUserByID
 		CreatedAt: int32(data.CreatedAt),
 		UpdatedAt: int32(data.UpdatedAt),
 		DeletedAt: int32(data.DeletedAt),
+	}
+
+	return res, nil
+}
+
+func (c AuthController) UpdateUser(ctx context.Context, req *authPb.UpdateUserRequest) (*authPb.BaseResponse, error) {
+	idHex, err := primitive.ObjectIDFromHex(req.GetId())
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	user := domain.UpdateUser{
+		ID:       idHex,
+		Name:     req.GetName(),
+		IsActive: req.GetIsActive(),
+		Note:     req.GetNote(),
+	}
+
+	err = c.UserUsecase.Update(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &authPb.BaseResponse{
+		Message: "Success",
+	}
+
+	return res, nil
+}
+
+func (c AuthController) DeleteUser(ctx context.Context, req *authPb.DeleteUserRequest) (*authPb.BaseResponse, error) {
+	idHex, err := primitive.ObjectIDFromHex(req.GetId())
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	user := domain.DeleteUser{
+		ID: idHex,
+	}
+
+	err = c.UserUsecase.Delete(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &authPb.BaseResponse{
+		Message: "Success",
 	}
 
 	return res, nil
