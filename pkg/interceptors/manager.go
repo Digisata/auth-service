@@ -187,6 +187,7 @@ func protectedMethods() map[string]bool {
 
 		// Profile
 		constants.PATH + "GetProfileByID": true,
+		constants.PATH + "ChangePassword": true,
 	}
 }
 

@@ -21,6 +21,7 @@ import (
 	"github.com/digisata/auth-service/usecase"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/alts"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
@@ -59,7 +60,8 @@ func main() {
 
 	// Setup GRPC server
 	im := interceptors.NewInterceptorManager(jwt, sugar)
-	grpcServer, err := grpcserver.NewGrpcServer(cfg.GrpcServer, im, sugar)
+	altsTC := alts.NewServerCreds(alts.DefaultServerOptions())
+	grpcServer, err := grpcserver.NewGrpcServer(cfg.GrpcServer, im, sugar, grpc.Creds(altsTC))
 	if err != nil {
 		panic(err)
 	}
@@ -74,7 +76,8 @@ func main() {
 	defer grpcServer.Stop(ctx)
 
 	// Setup GRPC client
-	grpcClientConn, err := grpcclient.NewGrpcClient(ctx, cfg.GrpcServer, im, grpc.WithBlock())
+	altsTC = alts.NewClientCreds(alts.DefaultClientOptions())
+	grpcClientConn, err := grpcclient.NewGrpcClient(ctx, cfg.GrpcServer, im, grpc.WithBlock(), grpc.WithTransportCredentials(altsTC))
 	if err != nil {
 		panic(err)
 	}

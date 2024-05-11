@@ -16,6 +16,7 @@ type (
 
 	ProfileRepository interface {
 		GetByID(ctx context.Context, id string) (domain.Profile, error)
+		ChangePassword(ctx context.Context, id, newPassword string) error
 	}
 
 	CacheRepository interface {

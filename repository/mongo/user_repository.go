@@ -23,8 +23,9 @@ func NewUserRepository(db mongo.Database, collection string) *UserRepository {
 	}
 }
 
-func (r UserRepository) Create(ctx context.Context, user domain.User) error {
+func (r UserRepository) Create(ctx context.Context, req domain.User) error {
 	collection := r.db.Collection(r.collection)
+	user := req
 
 	now := time.Now().Local().Unix()
 	user.CreatedAt = now

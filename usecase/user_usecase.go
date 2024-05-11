@@ -10,6 +10,8 @@ import (
 	"github.com/digisata/auth-service/bootstrap"
 	"github.com/digisata/auth-service/domain"
 	"github.com/digisata/auth-service/pkg/jwtio"
+	memcachedRepo "github.com/digisata/auth-service/repository/memcached"
+	mongoRepo "github.com/digisata/auth-service/repository/mongo"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
@@ -24,6 +26,9 @@ type UserUsecase struct {
 	timeout time.Duration
 }
 
+var _ UserRepository = (*mongoRepo.UserRepository)(nil)
+var _ CacheRepository = (*memcachedRepo.CacheRepository)(nil)
+
 func NewUserUsecase(jwt *jwtio.JSONWebToken, cfg *bootstrap.Config, ur UserRepository, cr CacheRepository, timeout time.Duration) *UserUsecase {
 	return &UserUsecase{
 		jwt:     jwt,
@@ -34,8 +39,8 @@ func NewUserUsecase(jwt *jwtio.JSONWebToken, cfg *bootstrap.Config, ur UserRepos
 	}
 }
 
-func (uc UserUsecase) generateToken(user domain.User) (domain.Login, error) {
-	var res domain.Login
+func (uc UserUsecase) generateToken(user domain.User) (domain.AuthResponse, error) {
+	var res domain.AuthResponse
 	payload := jwtio.Payload{
 		ID:    user.ID.Hex(),
 		Name:  user.Name,
@@ -71,7 +76,7 @@ func (uc UserUsecase) generateToken(user domain.User) (domain.Login, error) {
 		return res, status.Error(codes.Internal, err.Error())
 	}
 
-	res = domain.Login{
+	res = domain.AuthResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}
@@ -79,8 +84,8 @@ func (uc UserUsecase) generateToken(user domain.User) (domain.Login, error) {
 	return res, nil
 }
 
-func (uc UserUsecase) LoginAdmin(ctx context.Context, req domain.User) (domain.Login, error) {
-	var res domain.Login
+func (uc UserUsecase) LoginAdmin(ctx context.Context, req domain.User) (domain.AuthResponse, error) {
+	var res domain.AuthResponse
 	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
@@ -106,8 +111,8 @@ func (uc UserUsecase) LoginAdmin(ctx context.Context, req domain.User) (domain.L
 	return res, nil
 }
 
-func (uc UserUsecase) LoginCustomer(ctx context.Context, req domain.User) (domain.Login, error) {
-	var res domain.Login
+func (uc UserUsecase) LoginCustomer(ctx context.Context, req domain.User) (domain.AuthResponse, error) {
+	var res domain.AuthResponse
 	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
@@ -133,8 +138,8 @@ func (uc UserUsecase) LoginCustomer(ctx context.Context, req domain.User) (domai
 	return res, nil
 }
 
-func (uc UserUsecase) LoginCommittee(ctx context.Context, req domain.User) (domain.Login, error) {
-	var res domain.Login
+func (uc UserUsecase) LoginCommittee(ctx context.Context, req domain.User) (domain.AuthResponse, error) {
+	var res domain.AuthResponse
 	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
@@ -160,8 +165,8 @@ func (uc UserUsecase) LoginCommittee(ctx context.Context, req domain.User) (doma
 	return res, nil
 }
 
-func (uc UserUsecase) RefreshToken(ctx context.Context, req domain.RefreshTokenRequest) (domain.Login, error) {
-	var res domain.Login
+func (uc UserUsecase) RefreshToken(ctx context.Context, req domain.RefreshTokenRequest) (domain.AuthResponse, error) {
+	var res domain.AuthResponse
 	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
@@ -224,7 +229,7 @@ func (uc UserUsecase) RefreshToken(ctx context.Context, req domain.RefreshTokenR
 		return res, status.Error(codes.Internal, err.Error())
 	}
 
-	res = domain.Login{
+	res = domain.AuthResponse{
 		AccessToken:  newAccessToken,
 		RefreshToken: newRefreshToken,
 	}

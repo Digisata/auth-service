@@ -67,3 +67,8 @@ message GetProfileByIDResponse {
     int32 updated_at = 5 [json_name = "updated_at"];
     int32 deleted_at = 6 [json_name = "deleted_at"];
 }
+
+message ChangePasswordRequest {
+    string old_password = 1 [json_name = "old_password"];
+    string new_password = 2 [json_name = "new_password"];
+}

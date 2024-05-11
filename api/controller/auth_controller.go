@@ -5,6 +5,7 @@ import (
 
 	"github.com/digisata/auth-service/domain"
 	authPb "github.com/digisata/auth-service/stubs/auth"
+	"github.com/digisata/auth-service/usecase"
 	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -15,6 +16,9 @@ type AuthController struct {
 	UserUsecase    UserUsecase
 	ProfileUsecase ProfileUsecase
 }
+
+var _ UserUsecase = (*usecase.UserUsecase)(nil)
+var _ ProfileUsecase = (*usecase.ProfileUsecase)(nil)
 
 // User
 func (c AuthController) LoginAdmin(ctx context.Context, req *authPb.LoginRequest) (*authPb.LoginResponse, error) {
@@ -108,7 +112,7 @@ func (c AuthController) CreateUser(ctx context.Context, req *authPb.CreateUserRe
 	}
 
 	res := &authPb.BaseResponse{
-		Message: "success",
+		Message: "Success",
 	}
 
 	return res, nil
@@ -142,7 +146,7 @@ func (c AuthController) Logout(ctx context.Context, req *authPb.LogoutRequest) (
 	}
 
 	res := &authPb.BaseResponse{
-		Message: "success",
+		Message: "Success",
 	}
 
 	return res, nil
@@ -164,6 +168,24 @@ func (c AuthController) GetProfileByID(ctx context.Context, req *emptypb.Empty) 
 		CreatedAt: int32(data.CreatedAt),
 		UpdatedAt: int32(data.UpdatedAt),
 		DeletedAt: int32(data.DeletedAt),
+	}
+
+	return res, nil
+}
+
+func (c AuthController) ChangePassword(ctx context.Context, req *authPb.ChangePasswordRequest) (*authPb.BaseResponse, error) {
+	changePasswordRequest := domain.ChangePasswordRequest{
+		OldPassword: req.GetOldPassword(),
+		NewPassword: req.GetNewPassword(),
+	}
+
+	err := c.ProfileUsecase.ChangePassword(ctx, changePasswordRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &authPb.BaseResponse{
+		Message: "Success",
 	}
 
 	return res, nil

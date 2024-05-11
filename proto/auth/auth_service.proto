@@ -134,4 +134,16 @@ service AuthService {
         description: "This API for get profile"
     };
   }
+
+  rpc ChangePassword (ChangePasswordRequest) returns (BaseResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/profile",
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags: ["Profile"]
+        summary: "Change password"
+        description: "This API for change password"
+    };
+  }
 }

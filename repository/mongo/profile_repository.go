@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/digisata/auth-service/domain"
 	"github.com/digisata/auth-service/pkg/mongo"
@@ -37,4 +38,25 @@ func (r ProfileRepository) GetByID(ctx context.Context, id string) (domain.Profi
 	}
 
 	return profile, nil
+}
+
+func (r ProfileRepository) ChangePassword(ctx context.Context, id, newPassword string) error {
+	collection := r.db.Collection(r.collection)
+
+	idHex, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	updateProfile := domain.UpdateProfile{
+		Password:  newPassword,
+		UpdatedAt: time.Now().Local().Unix(),
+	}
+
+	_, err = collection.UpdateOne(ctx, bson.M{"_id": idHex}, bson.M{"$set": updateProfile})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

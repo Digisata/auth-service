@@ -177,6 +177,38 @@
         "tags": [
           "Profile"
         ]
+      },
+      "put": {
+        "summary": "Change password",
+        "description": "This API for change password",
+        "operationId": "AuthService_ChangePassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authBaseResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authChangePasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Profile"
+        ]
       }
     },
     "/api/v1/refresh": {
@@ -284,6 +316,17 @@
       "type": "object",
       "properties": {
         "message": {
+          "type": "string"
+        }
+      }
+    },
+    "authChangePasswordRequest": {
+      "type": "object",
+      "properties": {
+        "old_password": {
+          "type": "string"
+        },
+        "new_password": {
           "type": "string"
         }
       }
