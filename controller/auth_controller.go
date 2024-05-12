@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/digisata/auth-service/domain"
-	authPb "github.com/digisata/auth-service/stubs/auth"
+	"github.com/digisata/auth-service/stubs"
 	"github.com/digisata/auth-service/usecase"
 	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,7 +14,7 @@ import (
 )
 
 type AuthController struct {
-	authPb.UnimplementedAuthServiceServer
+	stubs.UnimplementedAuthServiceServer
 	UserUsecase    UserUsecase
 	ProfileUsecase ProfileUsecase
 }
@@ -23,7 +23,7 @@ var _ UserUsecase = (*usecase.UserUsecase)(nil)
 var _ ProfileUsecase = (*usecase.ProfileUsecase)(nil)
 
 // User
-func (c AuthController) LoginAdmin(ctx context.Context, req *authPb.LoginRequest) (*authPb.LoginResponse, error) {
+func (c AuthController) LoginAdmin(ctx context.Context, req *stubs.LoginRequest) (*stubs.LoginResponse, error) {
 	payload := domain.User{
 		Email:    req.GetEmail(),
 		Password: req.GetPassword(),
@@ -34,7 +34,7 @@ func (c AuthController) LoginAdmin(ctx context.Context, req *authPb.LoginRequest
 		return nil, err
 	}
 
-	res := &authPb.LoginResponse{
+	res := &stubs.LoginResponse{
 		AccessToken:  data.AccessToken,
 		RefreshToken: data.RefreshToken,
 	}
@@ -42,7 +42,7 @@ func (c AuthController) LoginAdmin(ctx context.Context, req *authPb.LoginRequest
 	return res, nil
 }
 
-func (c AuthController) LoginCustomer(ctx context.Context, req *authPb.LoginRequest) (*authPb.LoginResponse, error) {
+func (c AuthController) LoginCustomer(ctx context.Context, req *stubs.LoginRequest) (*stubs.LoginResponse, error) {
 	payload := domain.User{
 		Email:    req.GetEmail(),
 		Password: req.GetPassword(),
@@ -53,7 +53,7 @@ func (c AuthController) LoginCustomer(ctx context.Context, req *authPb.LoginRequ
 		return nil, err
 	}
 
-	res := &authPb.LoginResponse{
+	res := &stubs.LoginResponse{
 		AccessToken:  data.AccessToken,
 		RefreshToken: data.RefreshToken,
 	}
@@ -61,7 +61,7 @@ func (c AuthController) LoginCustomer(ctx context.Context, req *authPb.LoginRequ
 	return res, nil
 }
 
-func (c AuthController) LoginCommittee(ctx context.Context, req *authPb.LoginRequest) (*authPb.LoginResponse, error) {
+func (c AuthController) LoginCommittee(ctx context.Context, req *stubs.LoginRequest) (*stubs.LoginResponse, error) {
 	payload := domain.User{
 		Email:    req.GetEmail(),
 		Password: req.GetPassword(),
@@ -72,7 +72,7 @@ func (c AuthController) LoginCommittee(ctx context.Context, req *authPb.LoginReq
 		return nil, err
 	}
 
-	res := &authPb.LoginResponse{
+	res := &stubs.LoginResponse{
 		AccessToken:  data.AccessToken,
 		RefreshToken: data.RefreshToken,
 	}
@@ -80,7 +80,7 @@ func (c AuthController) LoginCommittee(ctx context.Context, req *authPb.LoginReq
 	return res, nil
 }
 
-func (c AuthController) RefreshToken(ctx context.Context, req *authPb.RefreshTokenRequest) (*authPb.RefreshTokenResponse, error) {
+func (c AuthController) RefreshToken(ctx context.Context, req *stubs.RefreshTokenRequest) (*stubs.RefreshTokenResponse, error) {
 	refreshTokenRequest := domain.RefreshTokenRequest{
 		AccessToken:  req.GetAccessToken(),
 		RefreshToken: req.GetRefreshToken(),
@@ -91,7 +91,7 @@ func (c AuthController) RefreshToken(ctx context.Context, req *authPb.RefreshTok
 		return nil, err
 	}
 
-	res := &authPb.RefreshTokenResponse{
+	res := &stubs.RefreshTokenResponse{
 		AccessToken:  data.AccessToken,
 		RefreshToken: data.RefreshToken,
 	}
@@ -99,7 +99,7 @@ func (c AuthController) RefreshToken(ctx context.Context, req *authPb.RefreshTok
 	return res, nil
 }
 
-func (c AuthController) CreateUser(ctx context.Context, req *authPb.CreateUserRequest) (*authPb.BaseResponse, error) {
+func (c AuthController) CreateUser(ctx context.Context, req *stubs.CreateUserRequest) (*stubs.BaseResponse, error) {
 	user := domain.User{
 		ID:       primitive.NewObjectID(),
 		Name:     req.GetName(),
@@ -113,14 +113,14 @@ func (c AuthController) CreateUser(ctx context.Context, req *authPb.CreateUserRe
 		return nil, err
 	}
 
-	res := &authPb.BaseResponse{
+	res := &stubs.BaseResponse{
 		Message: "Success",
 	}
 
 	return res, nil
 }
 
-func (c AuthController) GetAllUser(ctx context.Context, req *authPb.GetAllUserRequest) (*authPb.GetAllUserResponse, error) {
+func (c AuthController) GetAllUser(ctx context.Context, req *stubs.GetAllUserRequest) (*stubs.GetAllUserResponse, error) {
 	filter := domain.GetAllUserRequest{
 		Search:   req.GetSearch(),
 		IsActive: req.GetIsActive(),
@@ -131,9 +131,9 @@ func (c AuthController) GetAllUser(ctx context.Context, req *authPb.GetAllUserRe
 		return nil, err
 	}
 
-	res := &authPb.GetAllUserResponse{}
+	res := &stubs.GetAllUserResponse{}
 	for _, user := range users {
-		data := &authPb.GetUserByIDResponse{
+		data := &stubs.GetUserByIDResponse{
 			Id:        user.ID.Hex(),
 			Name:      user.Name,
 			Email:     user.Email,
@@ -150,13 +150,13 @@ func (c AuthController) GetAllUser(ctx context.Context, req *authPb.GetAllUserRe
 
 	return res, nil
 }
-func (c AuthController) GetUserByID(ctx context.Context, req *authPb.GetUserByIDRequest) (*authPb.GetUserByIDResponse, error) {
+func (c AuthController) GetUserByID(ctx context.Context, req *stubs.GetUserByIDRequest) (*stubs.GetUserByIDResponse, error) {
 	data, err := c.UserUsecase.GetByID(ctx, req.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	res := &authPb.GetUserByIDResponse{
+	res := &stubs.GetUserByIDResponse{
 		Id:        data.ID.Hex(),
 		Name:      data.Name,
 		Email:     data.Email,
@@ -171,7 +171,7 @@ func (c AuthController) GetUserByID(ctx context.Context, req *authPb.GetUserByID
 	return res, nil
 }
 
-func (c AuthController) UpdateUser(ctx context.Context, req *authPb.UpdateUserRequest) (*authPb.BaseResponse, error) {
+func (c AuthController) UpdateUser(ctx context.Context, req *stubs.UpdateUserRequest) (*stubs.BaseResponse, error) {
 	idHex, err := primitive.ObjectIDFromHex(req.GetId())
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -189,14 +189,14 @@ func (c AuthController) UpdateUser(ctx context.Context, req *authPb.UpdateUserRe
 		return nil, err
 	}
 
-	res := &authPb.BaseResponse{
+	res := &stubs.BaseResponse{
 		Message: "Success",
 	}
 
 	return res, nil
 }
 
-func (c AuthController) DeleteUser(ctx context.Context, req *authPb.DeleteUserRequest) (*authPb.BaseResponse, error) {
+func (c AuthController) DeleteUser(ctx context.Context, req *stubs.DeleteUserRequest) (*stubs.BaseResponse, error) {
 	idHex, err := primitive.ObjectIDFromHex(req.GetId())
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -211,20 +211,20 @@ func (c AuthController) DeleteUser(ctx context.Context, req *authPb.DeleteUserRe
 		return nil, err
 	}
 
-	res := &authPb.BaseResponse{
+	res := &stubs.BaseResponse{
 		Message: "Success",
 	}
 
 	return res, nil
 }
 
-func (c AuthController) Logout(ctx context.Context, req *authPb.LogoutRequest) (*authPb.BaseResponse, error) {
+func (c AuthController) Logout(ctx context.Context, req *stubs.LogoutRequest) (*stubs.BaseResponse, error) {
 	err := c.UserUsecase.Logout(ctx, req.GetRefreshToken())
 	if err != nil {
 		return nil, err
 	}
 
-	res := &authPb.BaseResponse{
+	res := &stubs.BaseResponse{
 		Message: "Success",
 	}
 
@@ -232,7 +232,7 @@ func (c AuthController) Logout(ctx context.Context, req *authPb.LogoutRequest) (
 }
 
 // Profile
-func (c AuthController) GetProfileByID(ctx context.Context, req *emptypb.Empty) (*authPb.GetProfileByIDResponse, error) {
+func (c AuthController) GetProfileByID(ctx context.Context, req *emptypb.Empty) (*stubs.GetProfileByIDResponse, error) {
 	claims := ctx.Value("claims")
 
 	data, err := c.ProfileUsecase.GetByID(ctx, claims.(jwt.MapClaims)["id"].(string))
@@ -240,7 +240,7 @@ func (c AuthController) GetProfileByID(ctx context.Context, req *emptypb.Empty) 
 		return nil, err
 	}
 
-	res := &authPb.GetProfileByIDResponse{
+	res := &stubs.GetProfileByIDResponse{
 		Id:        data.ID.Hex(),
 		Name:      data.Name,
 		Email:     data.Email,
@@ -252,7 +252,7 @@ func (c AuthController) GetProfileByID(ctx context.Context, req *emptypb.Empty) 
 	return res, nil
 }
 
-func (c AuthController) ChangePassword(ctx context.Context, req *authPb.ChangePasswordRequest) (*authPb.BaseResponse, error) {
+func (c AuthController) ChangePassword(ctx context.Context, req *stubs.ChangePasswordRequest) (*stubs.BaseResponse, error) {
 	changePasswordRequest := domain.ChangePasswordRequest{
 		OldPassword: req.GetOldPassword(),
 		NewPassword: req.GetNewPassword(),
@@ -263,7 +263,7 @@ func (c AuthController) ChangePassword(ctx context.Context, req *authPb.ChangePa
 		return nil, err
 	}
 
-	res := &authPb.BaseResponse{
+	res := &stubs.BaseResponse{
 		Message: "Success",
 	}
 

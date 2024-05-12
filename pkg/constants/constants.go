@@ -7,7 +7,7 @@ const (
 	CUSTOMER
 	COMMITTEE
 
-	PATH string = "/auth_service.auth.AuthService/"
+	PATH string = "/proto.AuthService/"
 
 	TOKEN_EXPIRED             string = "token has been expired"
 	REFRESH_TOKEN_EXPIRED     string = "refresh token has been expired"

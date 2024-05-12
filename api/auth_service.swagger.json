@@ -25,7 +25,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userLoginResponse"
+              "$ref": "#/definitions/protoLoginResponse"
             }
           },
           "default": {
@@ -41,7 +41,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/userLoginRequest"
+              "$ref": "#/definitions/protoLoginRequest"
             }
           }
         ],
@@ -60,7 +60,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userLoginResponse"
+              "$ref": "#/definitions/protoLoginResponse"
             }
           },
           "default": {
@@ -76,7 +76,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/userLoginRequest"
+              "$ref": "#/definitions/protoLoginRequest"
             }
           }
         ],
@@ -95,7 +95,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userLoginResponse"
+              "$ref": "#/definitions/protoLoginResponse"
             }
           },
           "default": {
@@ -111,7 +111,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/userLoginRequest"
+              "$ref": "#/definitions/protoLoginRequest"
             }
           }
         ],
@@ -130,7 +130,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userBaseResponse"
+              "$ref": "#/definitions/protoBaseResponse"
             }
           },
           "default": {
@@ -146,7 +146,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/userLogoutRequest"
+              "$ref": "#/definitions/protoLogoutRequest"
             }
           }
         ],
@@ -159,12 +159,12 @@
       "get": {
         "summary": "Get profile",
         "description": "This API for get profile",
-        "operationId": "AuthService_GetProfile",
+        "operationId": "AuthService_GetProfileByID",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userGetProfileResponse"
+              "$ref": "#/definitions/protoGetProfileByIDResponse"
             }
           },
           "default": {
@@ -174,6 +174,38 @@
             }
           }
         },
+        "tags": [
+          "Profile"
+        ]
+      },
+      "put": {
+        "summary": "Change password",
+        "description": "This API for change password",
+        "operationId": "AuthService_ChangePassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protoBaseResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/protoChangePasswordRequest"
+            }
+          }
+        ],
         "tags": [
           "Profile"
         ]
@@ -188,7 +220,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userRefreshTokenResponse"
+              "$ref": "#/definitions/protoRefreshTokenResponse"
             }
           },
           "default": {
@@ -204,7 +236,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/userRefreshTokenRequest"
+              "$ref": "#/definitions/protoRefreshTokenRequest"
             }
           }
         ],
@@ -216,14 +248,14 @@
     },
     "/api/v1/users": {
       "get": {
-        "summary": "Get user by id",
-        "description": "This API for get user by id",
-        "operationId": "AuthService_GetUserByID",
+        "summary": "Get all user",
+        "description": "This API for get all user",
+        "operationId": "AuthService_GetAllUser",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userGetUserByIDResponse"
+              "$ref": "#/definitions/protoGetAllUserResponse"
             }
           },
           "default": {
@@ -235,10 +267,16 @@
         },
         "parameters": [
           {
-            "name": "id",
+            "name": "search",
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
           }
         ],
         "tags": [
@@ -253,7 +291,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/userBaseResponse"
+              "$ref": "#/definitions/protoBaseResponse"
             }
           },
           "default": {
@@ -269,7 +307,107 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/userCreateUserRequest"
+              "$ref": "#/definitions/protoCreateUserRequest"
+            }
+          }
+        ],
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/api/v1/users/{id}": {
+      "get": {
+        "summary": "Get user by id",
+        "description": "This API for get user by id",
+        "operationId": "AuthService_GetUserByID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protoGetUserByIDResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "User"
+        ]
+      },
+      "delete": {
+        "summary": "Delete user by id",
+        "description": "This API for delete user by id",
+        "operationId": "AuthService_DeleteUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protoBaseResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "User"
+        ]
+      },
+      "put": {
+        "summary": "Update user by id",
+        "description": "This API for update user by id",
+        "operationId": "AuthService_UpdateUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protoBaseResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AuthServiceUpdateUserBody"
             }
           }
         ],
@@ -280,6 +418,199 @@
     }
   },
   "definitions": {
+    "AuthServiceUpdateUserBody": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "is_active": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "deleted_at": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "protoBaseResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "protoChangePasswordRequest": {
+      "type": "object",
+      "properties": {
+        "old_password": {
+          "type": "string"
+        },
+        "new_password": {
+          "type": "string"
+        }
+      }
+    },
+    "protoCreateUserRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "is_active": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "protoGetAllUserResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protoGetUserByIDResponse"
+          }
+        }
+      }
+    },
+    "protoGetProfileByIDResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "updated_at": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "deleted_at": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "Profile"
+    },
+    "protoGetUserByIDResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "role": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "is_active": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "updated_at": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "deleted_at": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "protoLoginRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "title": "User"
+    },
+    "protoLoginResponse": {
+      "type": "object",
+      "properties": {
+        "access_token": {
+          "type": "string"
+        },
+        "refresh_token": {
+          "type": "string"
+        }
+      }
+    },
+    "protoLogoutRequest": {
+      "type": "object",
+      "properties": {
+        "refresh_token": {
+          "type": "string"
+        }
+      }
+    },
+    "protoRefreshTokenRequest": {
+      "type": "object",
+      "properties": {
+        "access_token": {
+          "type": "string"
+        },
+        "refresh_token": {
+          "type": "string"
+        }
+      }
+    },
+    "protoRefreshTokenResponse": {
+      "type": "object",
+      "properties": {
+        "access_token": {
+          "type": "string"
+        },
+        "refresh_token": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -305,124 +636,6 @@
             "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
-        }
-      }
-    },
-    "userBaseResponse": {
-      "type": "object",
-      "properties": {
-        "message": {
-          "type": "string"
-        }
-      }
-    },
-    "userCreateUserRequest": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "role": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "email": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        },
-        "is_active": {
-          "type": "boolean"
-        },
-        "note": {
-          "type": "string"
-        }
-      },
-      "title": "User"
-    },
-    "userGetProfileResponse": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        }
-      },
-      "title": "Profile"
-    },
-    "userGetUserByIDResponse": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        },
-        "role": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "is_active": {
-          "type": "boolean"
-        },
-        "note": {
-          "type": "string"
-        }
-      }
-    },
-    "userLoginRequest": {
-      "type": "object",
-      "properties": {
-        "email": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        }
-      }
-    },
-    "userLoginResponse": {
-      "type": "object",
-      "properties": {
-        "access_token": {
-          "type": "string"
-        },
-        "refresh_token": {
-          "type": "string"
-        }
-      }
-    },
-    "userLogoutRequest": {
-      "type": "object",
-      "properties": {
-        "refresh_token": {
-          "type": "string"
-        }
-      }
-    },
-    "userRefreshTokenRequest": {
-      "type": "object",
-      "properties": {
-        "access_token": {
-          "type": "string"
-        },
-        "refresh_token": {
-          "type": "string"
-        }
-      }
-    },
-    "userRefreshTokenResponse": {
-      "type": "object",
-      "properties": {
-        "access_token": {
-          "type": "string"
-        },
-        "refresh_token": {
-          "type": "string"
         }
       }
     }

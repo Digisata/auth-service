@@ -7,8 +7,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/digisata/auth-service/api/controller"
 	"github.com/digisata/auth-service/bootstrap"
+	"github.com/digisata/auth-service/controller"
 	"github.com/digisata/auth-service/domain"
 	"github.com/digisata/auth-service/gateway"
 	"github.com/digisata/auth-service/pkg/grpcclient"
@@ -17,7 +17,7 @@ import (
 	"github.com/digisata/auth-service/pkg/jwtio"
 	memcachedRepo "github.com/digisata/auth-service/repository/memcached"
 	mongoRepo "github.com/digisata/auth-service/repository/mongo"
-	authPb "github.com/digisata/auth-service/stubs/auth"
+	"github.com/digisata/auth-service/stubs"
 	"github.com/digisata/auth-service/usecase"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -66,7 +66,7 @@ func main() {
 		panic(err)
 	}
 
-	authPb.RegisterAuthServiceServer(grpcServer, authController)
+	stubs.RegisterAuthServiceServer(grpcServer, authController)
 	grpc_health_v1.RegisterHealthServer(grpcServer.Server, health.NewServer())
 
 	err = grpcServer.Run()
@@ -85,7 +85,7 @@ func main() {
 
 	// Setup gateway mux
 	gatewayServer := gateway.NewGateway(cfg.Port)
-	err = authPb.RegisterAuthServiceHandler(ctx, gatewayServer.ServeMux, grpcClientConn)
+	err = stubs.RegisterAuthServiceHandler(ctx, gatewayServer.ServeMux, grpcClientConn)
 	if err != nil {
 		panic(err)
 	}

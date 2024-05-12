@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package auth_service.auth;
+package proto;
 
-option go_package = "github.com/digisata/auth-service/proto/auth;authPb";
+option go_package = "./stubs";
 
 message BaseResponse {
     string message = 1 [json_name = "message"];

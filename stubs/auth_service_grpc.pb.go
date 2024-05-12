@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: auth/auth_service.proto
+// source: auth_service.proto
 
-package authPb
+package stubs
 
 import (
 	context "context"
@@ -20,18 +20,18 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AuthService_CreateUser_FullMethodName     = "/auth_service.auth.AuthService/CreateUser"
-	AuthService_LoginAdmin_FullMethodName     = "/auth_service.auth.AuthService/LoginAdmin"
-	AuthService_LoginCustomer_FullMethodName  = "/auth_service.auth.AuthService/LoginCustomer"
-	AuthService_LoginCommittee_FullMethodName = "/auth_service.auth.AuthService/LoginCommittee"
-	AuthService_RefreshToken_FullMethodName   = "/auth_service.auth.AuthService/RefreshToken"
-	AuthService_GetAllUser_FullMethodName     = "/auth_service.auth.AuthService/GetAllUser"
-	AuthService_GetUserByID_FullMethodName    = "/auth_service.auth.AuthService/GetUserByID"
-	AuthService_UpdateUser_FullMethodName     = "/auth_service.auth.AuthService/UpdateUser"
-	AuthService_DeleteUser_FullMethodName     = "/auth_service.auth.AuthService/DeleteUser"
-	AuthService_Logout_FullMethodName         = "/auth_service.auth.AuthService/Logout"
-	AuthService_GetProfileByID_FullMethodName = "/auth_service.auth.AuthService/GetProfileByID"
-	AuthService_ChangePassword_FullMethodName = "/auth_service.auth.AuthService/ChangePassword"
+	AuthService_CreateUser_FullMethodName     = "/proto.AuthService/CreateUser"
+	AuthService_LoginAdmin_FullMethodName     = "/proto.AuthService/LoginAdmin"
+	AuthService_LoginCustomer_FullMethodName  = "/proto.AuthService/LoginCustomer"
+	AuthService_LoginCommittee_FullMethodName = "/proto.AuthService/LoginCommittee"
+	AuthService_RefreshToken_FullMethodName   = "/proto.AuthService/RefreshToken"
+	AuthService_GetAllUser_FullMethodName     = "/proto.AuthService/GetAllUser"
+	AuthService_GetUserByID_FullMethodName    = "/proto.AuthService/GetUserByID"
+	AuthService_UpdateUser_FullMethodName     = "/proto.AuthService/UpdateUser"
+	AuthService_DeleteUser_FullMethodName     = "/proto.AuthService/DeleteUser"
+	AuthService_Logout_FullMethodName         = "/proto.AuthService/Logout"
+	AuthService_GetProfileByID_FullMethodName = "/proto.AuthService/GetProfileByID"
+	AuthService_ChangePassword_FullMethodName = "/proto.AuthService/ChangePassword"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -464,7 +464,7 @@ func _AuthService_ChangePassword_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AuthService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "auth_service.auth.AuthService",
+	ServiceName: "proto.AuthService",
 	HandlerType: (*AuthServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -517,5 +517,5 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "auth/auth_service.proto",
+	Metadata: "auth_service.proto",
 }
