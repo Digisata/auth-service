@@ -9,15 +9,6 @@ message BaseResponse {
 }
 
 // User
-message CreateUserRequest {
-    string name = 1 [json_name = "name"];
-    int32 role = 2 [json_name = "role"];
-    string email = 3 [json_name = "email"];
-    string password = 4 [json_name = "password"];
-    bool is_active = 5 [json_name = "is_active"];
-    string note = 6 [json_name = "note"];
-}
-
 message LoginRequest {
     string email = 1 [json_name = "email"];
     string password = 2 [json_name = "password"];
@@ -36,6 +27,24 @@ message RefreshTokenRequest {
 message RefreshTokenResponse {
     string access_token = 1 [json_name = "access_token"];
     string refresh_token = 2 [json_name = "refresh_token"];
+}
+
+message CreateUserRequest {
+    string name = 1 [json_name = "name"];
+    int32 role = 2 [json_name = "role"];
+    string email = 3 [json_name = "email"];
+    string password = 4 [json_name = "password"];
+    bool is_active = 5 [json_name = "is_active"];
+    string note = 6 [json_name = "note"];
+}
+
+message GetAllUserRequest {
+    string search = 1 [json_name = "search"];
+    bool is_active = 2 [json_name = "is_active"];
+}
+
+message GetAllUserResponse {
+    repeated GetUserByIDResponse users = 1 [json_name = "users"];
 }
 
 message GetUserByIDRequest {
@@ -63,12 +72,12 @@ message UpdateUserRequest {
     int32 deleted_at = 6 [json_name = "deleted_at"];
 }
 
-message LogoutRequest {
-    string refresh_token = 1 [json_name = "refresh_token"];
-}
-
 message DeleteUserRequest {
     string id = 1 [json_name = "id"];
+}
+
+message LogoutRequest {
+    string refresh_token = 1 [json_name = "refresh_token"];
 }
 
 // Profile

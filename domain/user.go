@@ -39,6 +39,11 @@ type (
 		RefreshToken string
 	}
 
+	GetAllUserRequest struct {
+		Search   string
+		IsActive bool
+	}
+
 	UpdateUser struct {
 		ID        primitive.ObjectID `bson:"_id"`
 		Name      string             `bson:"name,omitempty"`

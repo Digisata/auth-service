@@ -38,11 +38,24 @@ func (r UserRepository) Create(ctx context.Context, req domain.User) error {
 	return nil
 }
 
-func (r UserRepository) GetAll(ctx context.Context) ([]domain.User, error) {
+func (r UserRepository) GetAll(ctx context.Context, req domain.GetAllUserRequest) ([]domain.User, error) {
 	collection := r.db.Collection(r.collection)
 	opts := options.Find().SetProjection(bson.D{{Key: "password", Value: 0}})
 
-	cursor, err := collection.Find(ctx, bson.D{}, opts)
+	filter := bson.M{}
+	if req.Search != "" {
+		pattern := ".*" + req.Search + ".*"
+		filter["$or"] = []interface{}{
+			bson.M{"name": bson.M{"$regex": pattern, "$options": "i"}},
+			bson.M{"email": bson.M{"$regex": pattern, "$options": "i"}},
+		}
+	}
+
+	filter["is_active"] = req.IsActive
+	filter["role"] = bson.M{"$ne": domain.ADMIN}
+	filter["deleted_at"] = 0
+
+	cursor, err := collection.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}

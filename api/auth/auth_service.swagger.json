@@ -247,6 +247,42 @@
       }
     },
     "/api/v1/users": {
+      "get": {
+        "summary": "Get all user",
+        "description": "This API for get all user",
+        "operationId": "AuthService_GetAllUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authGetAllUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "User"
+        ]
+      },
       "post": {
         "summary": "Create user",
         "description": "This API for create user",
@@ -445,8 +481,19 @@
         "note": {
           "type": "string"
         }
-      },
-      "title": "User"
+      }
+    },
+    "authGetAllUserResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authGetUserByIDResponse"
+          }
+        }
+      }
     },
     "authGetProfileByIDResponse": {
       "type": "object",
@@ -520,7 +567,8 @@
         "password": {
           "type": "string"
         }
-      }
+      },
+      "title": "User"
     },
     "authLoginResponse": {
       "type": "object",

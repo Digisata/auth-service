@@ -100,6 +100,17 @@ service AuthService {
     };
   }
 
+  rpc GetAllUser (GetAllUserRequest) returns (GetAllUserResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/users",
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags: ["User"]
+        summary: "Get all user"
+        description: "This API for get all user"
+    };
+  }
+
   rpc GetUserByID (GetUserByIDRequest) returns (GetUserByIDResponse) {
     option (google.api.http) = {
       get: "/api/v1/users/{id}",
@@ -108,18 +119,6 @@ service AuthService {
         tags: ["User"]
         summary: "Get user by id"
         description: "This API for get user by id"
-    };
-  }
-
-  rpc Logout (LogoutRequest) returns (BaseResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/logout",
-      body: "*"
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        tags: ["User"]
-        summary: "User logout"
-        description: "This API for user logout"
     };
   }
 
@@ -143,6 +142,18 @@ service AuthService {
         tags: ["User"]
         summary: "Delete user by id"
         description: "This API for delete user by id"
+    };
+  }
+
+  rpc Logout (LogoutRequest) returns (BaseResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/logout",
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags: ["User"]
+        summary: "User logout"
+        description: "This API for user logout"
     };
   }
 

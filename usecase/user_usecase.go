@@ -275,6 +275,19 @@ func (uc UserUsecase) Create(ctx context.Context, req domain.User) error {
 	return nil
 }
 
+func (uc UserUsecase) GetAll(ctx context.Context, req domain.GetAllUserRequest) ([]domain.User, error) {
+	var res []domain.User
+	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
+	defer cancel()
+
+	res, err := uc.ur.GetAll(ctx, req)
+	if err != nil {
+		return res, status.Error(codes.Internal, err.Error())
+	}
+
+	return res, nil
+}
+
 func (uc UserUsecase) GetByID(ctx context.Context, userID string) (domain.User, error) {
 	var res domain.User
 	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
@@ -290,25 +303,6 @@ func (uc UserUsecase) GetByID(ctx context.Context, userID string) (domain.User, 
 	}
 
 	return res, nil
-}
-
-func (uc UserUsecase) Logout(ctx context.Context, refreshToken string) error {
-	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
-	defer cancel()
-
-	accessToken, _ := uc.jwt.GetAccessToken(ctx)
-
-	err := uc.cr.Delete(accessToken)
-	if err != nil && !errors.Is(err, memcache.ErrCacheMiss) {
-		return status.Error(codes.Internal, err.Error())
-	}
-
-	err = uc.cr.Delete(refreshToken)
-	if err != nil && !errors.Is(err, memcache.ErrCacheMiss) {
-		return status.Error(codes.Internal, err.Error())
-	}
-
-	return nil
 }
 
 func (uc UserUsecase) Update(ctx context.Context, req domain.UpdateUser) error {
@@ -351,6 +345,25 @@ func (uc UserUsecase) Delete(ctx context.Context, req domain.DeleteUser) error {
 
 	err = uc.ur.Delete(ctx, req)
 	if err != nil {
+		return status.Error(codes.Internal, err.Error())
+	}
+
+	return nil
+}
+
+func (uc UserUsecase) Logout(ctx context.Context, refreshToken string) error {
+	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
+	defer cancel()
+
+	accessToken, _ := uc.jwt.GetAccessToken(ctx)
+
+	err := uc.cr.Delete(accessToken)
+	if err != nil && !errors.Is(err, memcache.ErrCacheMiss) {
+		return status.Error(codes.Internal, err.Error())
+	}
+
+	err = uc.cr.Delete(refreshToken)
+	if err != nil && !errors.Is(err, memcache.ErrCacheMiss) {
 		return status.Error(codes.Internal, err.Error())
 	}
 

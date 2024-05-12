@@ -182,6 +182,7 @@ func protectedMethods() map[string]bool {
 	return map[string]bool{
 		// User
 		constants.PATH + "CreateUser":  true,
+		constants.PATH + "GetAllUser":  true,
 		constants.PATH + "GetUserByID": true,
 		constants.PATH + "UpdateUser":  true,
 		constants.PATH + "DeleteUser":  true,
@@ -197,6 +198,7 @@ func allowedRoles() map[string][]int8 {
 	return map[string][]int8{
 		// User
 		constants.PATH + "CreateUser":  {int8(constants.ADMIN)},
+		constants.PATH + "GetAllUser":  {int8(constants.ADMIN)},
 		constants.PATH + "GetUserByID": {int8(constants.ADMIN)},
 		constants.PATH + "UpdateUser":  {int8(constants.ADMIN)},
 		constants.PATH + "DeleteUser":  {int8(constants.ADMIN)},

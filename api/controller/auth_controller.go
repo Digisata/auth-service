@@ -120,6 +120,36 @@ func (c AuthController) CreateUser(ctx context.Context, req *authPb.CreateUserRe
 	return res, nil
 }
 
+func (c AuthController) GetAllUser(ctx context.Context, req *authPb.GetAllUserRequest) (*authPb.GetAllUserResponse, error) {
+	filter := domain.GetAllUserRequest{
+		Search:   req.GetSearch(),
+		IsActive: req.GetIsActive(),
+	}
+
+	users, err := c.UserUsecase.GetAll(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &authPb.GetAllUserResponse{}
+	for _, user := range users {
+		data := &authPb.GetUserByIDResponse{
+			Id:        user.ID.Hex(),
+			Name:      user.Name,
+			Email:     user.Email,
+			Role:      int32(user.Role),
+			IsActive:  user.IsActive,
+			Note:      user.Note,
+			CreatedAt: int32(user.CreatedAt),
+			UpdatedAt: int32(user.UpdatedAt),
+			DeletedAt: int32(user.DeletedAt),
+		}
+
+		res.Users = append(res.Users, data)
+	}
+
+	return res, nil
+}
 func (c AuthController) GetUserByID(ctx context.Context, req *authPb.GetUserByIDRequest) (*authPb.GetUserByIDResponse, error) {
 	data, err := c.UserUsecase.GetByID(ctx, req.Id)
 	if err != nil {
