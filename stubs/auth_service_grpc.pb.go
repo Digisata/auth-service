@@ -31,7 +31,7 @@ const (
 	AuthService_GetUserByID_FullMethodName    = "/proto.AuthService/GetUserByID"
 	AuthService_UpdateUser_FullMethodName     = "/proto.AuthService/UpdateUser"
 	AuthService_DeleteUser_FullMethodName     = "/proto.AuthService/DeleteUser"
-	AuthService_GetProfileByID_FullMethodName = "/proto.AuthService/GetProfileByID"
+	AuthService_GetProfile_FullMethodName     = "/proto.AuthService/GetProfile"
 	AuthService_ChangePassword_FullMethodName = "/proto.AuthService/ChangePassword"
 )
 
@@ -53,7 +53,7 @@ type AuthServiceClient interface {
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*BaseResponse, error)
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*BaseResponse, error)
 	// Profile
-	GetProfileByID(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProfileByIDResponse, error)
+	GetProfile(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProfileResponse, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*BaseResponse, error)
 }
 
@@ -164,9 +164,9 @@ func (c *authServiceClient) DeleteUser(ctx context.Context, in *DeleteUserReques
 	return out, nil
 }
 
-func (c *authServiceClient) GetProfileByID(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProfileByIDResponse, error) {
-	out := new(GetProfileByIDResponse)
-	err := c.cc.Invoke(ctx, AuthService_GetProfileByID_FullMethodName, in, out, opts...)
+func (c *authServiceClient) GetProfile(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetProfileResponse, error) {
+	out := new(GetProfileResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetProfile_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ type AuthServiceServer interface {
 	UpdateUser(context.Context, *UpdateUserRequest) (*BaseResponse, error)
 	DeleteUser(context.Context, *DeleteUserRequest) (*BaseResponse, error)
 	// Profile
-	GetProfileByID(context.Context, *emptypb.Empty) (*GetProfileByIDResponse, error)
+	GetProfile(context.Context, *emptypb.Empty) (*GetProfileResponse, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*BaseResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
@@ -242,8 +242,8 @@ func (UnimplementedAuthServiceServer) UpdateUser(context.Context, *UpdateUserReq
 func (UnimplementedAuthServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*BaseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
-func (UnimplementedAuthServiceServer) GetProfileByID(context.Context, *emptypb.Empty) (*GetProfileByIDResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetProfileByID not implemented")
+func (UnimplementedAuthServiceServer) GetProfile(context.Context, *emptypb.Empty) (*GetProfileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProfile not implemented")
 }
 func (UnimplementedAuthServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*BaseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
@@ -459,20 +459,20 @@ func _AuthService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthService_GetProfileByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AuthService_GetProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServiceServer).GetProfileByID(ctx, in)
+		return srv.(AuthServiceServer).GetProfile(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AuthService_GetProfileByID_FullMethodName,
+		FullMethod: AuthService_GetProfile_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).GetProfileByID(ctx, req.(*emptypb.Empty))
+		return srv.(AuthServiceServer).GetProfile(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -547,8 +547,8 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AuthService_DeleteUser_Handler,
 		},
 		{
-			MethodName: "GetProfileByID",
-			Handler:    _AuthService_GetProfileByID_Handler,
+			MethodName: "GetProfile",
+			Handler:    _AuthService_GetProfile_Handler,
 		},
 		{
 			MethodName: "ChangePassword",

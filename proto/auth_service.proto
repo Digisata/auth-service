@@ -38,7 +38,7 @@ service AuthService {
   // Auth
   rpc Verify (google.protobuf.Empty) returns (BaseResponse) {
     option (google.api.http) = {
-      get: "/api/v1/verify",
+      get: "/api/v1/auth/verify",
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
         tags: ["Auth"]
@@ -49,7 +49,7 @@ service AuthService {
 
   rpc LoginAdmin (LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
-      post: "/api/v1/admin/login",
+      post: "/api/v1/auth/login-admin",
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -62,7 +62,7 @@ service AuthService {
 
   rpc LoginCustomer (LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
-      post: "/api/v1/customer/login",
+      post: "/api/v1/auth/login-customer",
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -75,7 +75,7 @@ service AuthService {
 
   rpc LoginCommittee (LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
-      post: "/api/v1/committee/login",
+      post: "/api/v1/auth/login-committee",
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -88,7 +88,7 @@ service AuthService {
 
   rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {
     option (google.api.http) = {
-      post: "/api/v1/refresh",
+      post: "/api/v1/auth/refresh-token",
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -101,7 +101,7 @@ service AuthService {
 
   rpc Logout (LogoutRequest) returns (BaseResponse) {
     option (google.api.http) = {
-      post: "/api/v1/logout",
+      post: "/api/v1/auth/logout",
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -170,7 +170,7 @@ service AuthService {
   }
 
   // Profile
-  rpc GetProfileByID (google.protobuf.Empty) returns (GetProfileByIDResponse) {
+  rpc GetProfile (google.protobuf.Empty) returns (GetProfileResponse) {
     option (google.api.http) = {
       get: "/api/v1/profile",
     };
@@ -183,7 +183,7 @@ service AuthService {
 
   rpc ChangePassword (ChangePasswordRequest) returns (BaseResponse) {
     option (google.api.http) = {
-      put: "/api/v1/profile",
+      put: "/api/v1/profile/change-password",
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {

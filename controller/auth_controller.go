@@ -242,7 +242,7 @@ func (c AuthController) DeleteUser(ctx context.Context, req *stubs.DeleteUserReq
 }
 
 // Profile
-func (c AuthController) GetProfileByID(ctx context.Context, req *emptypb.Empty) (*stubs.GetProfileByIDResponse, error) {
+func (c AuthController) GetProfile(ctx context.Context, req *emptypb.Empty) (*stubs.GetProfileResponse, error) {
 	claims := ctx.Value("claims")
 
 	data, err := c.ProfileUsecase.GetByID(ctx, claims.(jwt.MapClaims)["id"].(string))
@@ -250,7 +250,7 @@ func (c AuthController) GetProfileByID(ctx context.Context, req *emptypb.Empty) 
 		return nil, err
 	}
 
-	res := &stubs.GetProfileByIDResponse{
+	res := &stubs.GetProfileResponse{
 		Id:        data.ID.Hex(),
 		Name:      data.Name,
 		Email:     data.Email,

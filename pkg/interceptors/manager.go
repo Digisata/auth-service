@@ -192,7 +192,7 @@ func protectedMethods() map[string]bool {
 		constants.PATH + "DeleteUser":  true,
 
 		// Profile
-		constants.PATH + "GetProfileByID": true,
+		constants.PATH + "GetProfile":     true,
 		constants.PATH + "ChangePassword": true,
 	}
 }

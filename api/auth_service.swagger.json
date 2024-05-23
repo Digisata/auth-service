@@ -16,7 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/v1/admin/login": {
+    "/api/v1/auth/login-admin": {
       "post": {
         "summary": "Admin login",
         "description": "This API for admin login",
@@ -51,7 +51,7 @@
         "security": []
       }
     },
-    "/api/v1/committee/login": {
+    "/api/v1/auth/login-committee": {
       "post": {
         "summary": "Committee login",
         "description": "This API for committee login",
@@ -86,7 +86,7 @@
         "security": []
       }
     },
-    "/api/v1/customer/login": {
+    "/api/v1/auth/login-customer": {
       "post": {
         "summary": "Customer login",
         "description": "This API for customer login",
@@ -121,7 +121,7 @@
         "security": []
       }
     },
-    "/api/v1/logout": {
+    "/api/v1/auth/logout": {
       "post": {
         "summary": "User logout",
         "description": "This API for user logout",
@@ -155,63 +155,7 @@
         ]
       }
     },
-    "/api/v1/profile": {
-      "get": {
-        "summary": "Get profile",
-        "description": "This API for get profile",
-        "operationId": "AuthService_GetProfileByID",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/protoGetProfileByIDResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "tags": [
-          "Profile"
-        ]
-      },
-      "put": {
-        "summary": "Change password",
-        "description": "This API for change password",
-        "operationId": "AuthService_ChangePassword",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/protoBaseResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/protoChangePasswordRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Profile"
-        ]
-      }
-    },
-    "/api/v1/refresh": {
+    "/api/v1/auth/refresh-token": {
       "post": {
         "summary": "Refresh token",
         "description": "This API for refresh token",
@@ -244,6 +188,88 @@
           "Auth"
         ],
         "security": []
+      }
+    },
+    "/api/v1/auth/verify": {
+      "get": {
+        "summary": "Verify request",
+        "description": "This API for verify request",
+        "operationId": "AuthService_Verify",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protoBaseResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/profile": {
+      "get": {
+        "summary": "Get profile",
+        "description": "This API for get profile",
+        "operationId": "AuthService_GetProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protoGetProfileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Profile"
+        ]
+      }
+    },
+    "/api/v1/profile/change-password": {
+      "put": {
+        "summary": "Change password",
+        "description": "This API for change password",
+        "operationId": "AuthService_ChangePassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protoBaseResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/protoChangePasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Profile"
+        ]
       }
     },
     "/api/v1/users": {
@@ -415,30 +441,6 @@
           "User"
         ]
       }
-    },
-    "/api/v1/verify": {
-      "get": {
-        "summary": "Verify request",
-        "description": "This API for verify request",
-        "operationId": "AuthService_Verify",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/protoBaseResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "tags": [
-          "Auth"
-        ]
-      }
     }
   },
   "definitions": {
@@ -519,7 +521,7 @@
         }
       }
     },
-    "protoGetProfileByIDResponse": {
+    "protoGetProfileResponse": {
       "type": "object",
       "properties": {
         "id": {
