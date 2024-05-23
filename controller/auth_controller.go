@@ -22,7 +22,15 @@ type AuthController struct {
 var _ UserUsecase = (*usecase.UserUsecase)(nil)
 var _ ProfileUsecase = (*usecase.ProfileUsecase)(nil)
 
-// User
+// Auth
+func (c AuthController) Verify(ctx context.Context, req *emptypb.Empty) (*stubs.BaseResponse, error) {
+	res := &stubs.BaseResponse{
+		Message: "Success",
+	}
+
+	return res, nil
+}
+
 func (c AuthController) LoginAdmin(ctx context.Context, req *stubs.LoginRequest) (*stubs.LoginResponse, error) {
 	payload := domain.User{
 		Email:    req.GetEmail(),
@@ -99,6 +107,20 @@ func (c AuthController) RefreshToken(ctx context.Context, req *stubs.RefreshToke
 	return res, nil
 }
 
+func (c AuthController) Logout(ctx context.Context, req *stubs.LogoutRequest) (*stubs.BaseResponse, error) {
+	err := c.UserUsecase.Logout(ctx, req.GetRefreshToken())
+	if err != nil {
+		return nil, err
+	}
+
+	res := &stubs.BaseResponse{
+		Message: "Success",
+	}
+
+	return res, nil
+}
+
+// User
 func (c AuthController) CreateUser(ctx context.Context, req *stubs.CreateUserRequest) (*stubs.BaseResponse, error) {
 	user := domain.User{
 		ID:       primitive.NewObjectID(),
@@ -150,6 +172,7 @@ func (c AuthController) GetAllUser(ctx context.Context, req *stubs.GetAllUserReq
 
 	return res, nil
 }
+
 func (c AuthController) GetUserByID(ctx context.Context, req *stubs.GetUserByIDRequest) (*stubs.GetUserByIDResponse, error) {
 	data, err := c.UserUsecase.GetByID(ctx, req.Id)
 	if err != nil {
@@ -207,19 +230,6 @@ func (c AuthController) DeleteUser(ctx context.Context, req *stubs.DeleteUserReq
 	}
 
 	err = c.UserUsecase.Delete(ctx, user)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &stubs.BaseResponse{
-		Message: "Success",
-	}
-
-	return res, nil
-}
-
-func (c AuthController) Logout(ctx context.Context, req *stubs.LogoutRequest) (*stubs.BaseResponse, error) {
-	err := c.UserUsecase.Logout(ctx, req.GetRefreshToken())
 	if err != nil {
 		return nil, err
 	}

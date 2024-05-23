@@ -46,7 +46,7 @@
           }
         ],
         "tags": [
-          "User"
+          "Auth"
         ],
         "security": []
       }
@@ -81,7 +81,7 @@
           }
         ],
         "tags": [
-          "User"
+          "Auth"
         ],
         "security": []
       }
@@ -116,7 +116,7 @@
           }
         ],
         "tags": [
-          "User"
+          "Auth"
         ],
         "security": []
       }
@@ -151,7 +151,7 @@
           }
         ],
         "tags": [
-          "User"
+          "Auth"
         ]
       }
     },
@@ -241,7 +241,7 @@
           }
         ],
         "tags": [
-          "User"
+          "Auth"
         ],
         "security": []
       }
@@ -413,6 +413,30 @@
         ],
         "tags": [
           "User"
+        ]
+      }
+    },
+    "/api/v1/verify": {
+      "get": {
+        "summary": "Verify request",
+        "description": "This API for verify request",
+        "operationId": "AuthService_Verify",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protoBaseResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Auth"
         ]
       }
     }

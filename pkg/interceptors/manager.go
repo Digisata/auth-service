@@ -180,13 +180,16 @@ func (im interceptorManager) AuthorizationInterceptor(
 
 func protectedMethods() map[string]bool {
 	return map[string]bool{
+		// Auth
+		constants.PATH + "Verify": true,
+		constants.PATH + "Logout": true,
+
 		// User
 		constants.PATH + "CreateUser":  true,
 		constants.PATH + "GetAllUser":  true,
 		constants.PATH + "GetUserByID": true,
 		constants.PATH + "UpdateUser":  true,
 		constants.PATH + "DeleteUser":  true,
-		constants.PATH + "Logout":      true,
 
 		// Profile
 		constants.PATH + "GetProfileByID": true,

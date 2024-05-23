@@ -35,16 +35,15 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 service AuthService {
-  // User
-  rpc CreateUser (CreateUserRequest) returns (BaseResponse) {
+  // Auth
+  rpc Verify (google.protobuf.Empty) returns (BaseResponse) {
     option (google.api.http) = {
-      post: "/api/v1/users",
-      body: "*"
+      get: "/api/v1/verify",
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        tags: ["User"]
-        summary: "Create user"
-        description: "This API for create user"
+        tags: ["Auth"]
+        summary: "Verify request"
+        description: "This API for verify request"
     };
   }
 
@@ -55,7 +54,7 @@ service AuthService {
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
         security: {}
-        tags: ["User"]
+        tags: ["Auth"]
         summary: "Admin login"
         description: "This API for admin login"
     };
@@ -68,7 +67,7 @@ service AuthService {
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
         security: {}
-        tags: ["User"]
+        tags: ["Auth"]
         summary: "Customer login"
         description: "This API for customer login"
     };
@@ -81,7 +80,7 @@ service AuthService {
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
         security: {}
-        tags: ["User"]
+        tags: ["Auth"]
         summary: "Committee login"
         description: "This API for committee login"
     };
@@ -94,9 +93,34 @@ service AuthService {
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
         security: {}
-        tags: ["User"]
+        tags: ["Auth"]
         summary: "Refresh token"
         description: "This API for refresh token"
+    };
+  }
+
+  rpc Logout (LogoutRequest) returns (BaseResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/logout",
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags: ["Auth"]
+        summary: "User logout"
+        description: "This API for user logout"
+    };
+  }
+
+  // User
+  rpc CreateUser (CreateUserRequest) returns (BaseResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users",
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        tags: ["User"]
+        summary: "Create user"
+        description: "This API for create user"
     };
   }
 
@@ -142,18 +166,6 @@ service AuthService {
         tags: ["User"]
         summary: "Delete user by id"
         description: "This API for delete user by id"
-    };
-  }
-
-  rpc Logout (LogoutRequest) returns (BaseResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/logout",
-      body: "*"
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        tags: ["User"]
-        summary: "User logout"
-        description: "This API for user logout"
     };
   }
 
